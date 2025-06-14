@@ -17,9 +17,7 @@ app/file_handler/outputs/*
 # Environment variables
 .env
 
-# IDE
-.vscode/settings.json
-.idea/
+
 
 # OS
 .DS_Store
