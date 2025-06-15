@@ -1,6 +1,6 @@
-# 🤖 PROAGENT - Advanced AI-Powered File Processing Platform
+# 🤖 ARYA - Advanced AI-Powered File Processing Platform
 
-**PROAGENT** is a cutting-edge FastAPI application that combines the power of AI with intuitive file processing capabilities. Using natural language prompts, users can describe what they want to do with their files, and the AI automatically determines and executes the appropriate function.
+**ARYA** is a cutting-edge FastAPI application that combines the power of AI with intuitive file processing capabilities. Using natural language prompts, users can describe what they want to do with their files, and the AI automatically determines and executes the appropriate function.
 
 ## ✨ Key Features
 
@@ -47,7 +47,7 @@
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd PROAGENT
+   cd ARYA
    ```
 
 2. **Use the automated start script** (Recommended)
@@ -199,7 +199,7 @@
 ## 🏗️ Project Architecture
 
 ```
-PROAGENT/
+ARYA/
 ├─ main.py                     # FastAPI application entry point
 ├─ requirements.txt            # Python dependencies
 ├─ start.sh                    # Automated setup script
@@ -366,7 +366,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## 🎉 **Ready to Transform Your File Processing Experience!**
 
-### 🌟 **What Makes PROAGENT Special:**
+### 🌟 **What Makes ARYA Special:**
 - **🧠 AI-Powered** - Just describe what you want in natural language
 - **🗣️ Voice-Enabled** - Speak your requests in any Indian language
 - **🌍 Globally Accessible** - Interface available in 100+ languages
