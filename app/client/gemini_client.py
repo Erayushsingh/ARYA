@@ -4,11 +4,12 @@ import os
 import re
 from typing import List, Dict, Any
 from app.models.schemas import FunctionCall
+from app.config import Config
 
 class GeminiClient:
     def __init__(self):
         # Configure the Gemini API
-        api_key = os.getenv('GOOGLE_GEMINI_API_KEY', "AIzaSyBTOnMrZ0rEEus9a4VQtap5hgRu8vdpjVg")
+        api_key = Config.GOOGLE_GEMINI_KEY
         genai.configure(api_key=api_key)
         
         # Initialize the model
@@ -48,8 +49,7 @@ class GeminiClient:
                 "description": "Extract and analyze all types of files from zip archives",
                 "parameters": {},
                 "triggers": ["extract files", "unzip files", "get files", "extract data", "analyze archive", "extract csv", "unzip csv"]
-            },
-            "replace_text": {
+            },            "replace_text": {
                 "description": "Extract archives and replace text/keywords in all files",
                 "parameters": {
                     "old_keyword": "Text to find and replace",
@@ -57,6 +57,22 @@ class GeminiClient:
                     "case_sensitive": "Whether replacement should be case sensitive (default: false)"
                 },
                 "triggers": ["replace text", "find and replace", "change keyword", "substitute text", "replace word"]
+            },            "speech_to_text": {
+                "description": "Convert speech/audio files to text using Sarvam AI",
+                "parameters": {
+                    "language": "Language of the audio (hindi, gujarati, english, etc.)",
+                    "model": "Model to use (default: saarika:v2)"
+                },
+                "triggers": ["speech to text", "audio to text", "transcribe", "voice to text", "convert audio", "speech recognition"]
+            },
+            "text_to_speech": {
+                "description": "Convert text to speech audio using Sarvam AI",
+                "parameters": {
+                    "text": "Text to convert to speech",
+                    "language": "Language for speech synthesis (hindi, gujarati, english, etc.)",
+                    "format": "Output audio format (wav, mp3)"
+                },
+                "triggers": ["text to speech", "convert text to audio", "text to voice", "generate speech", "synthesize speech", "speak text"]
             }
         }
     
@@ -151,8 +167,7 @@ User prompt: "{prompt}"
                 # Try to extract keywords from prompt
                 old_keyword = "IITM"  # default
                 new_keyword = "IIT Madras"  # default
-                
-                # Simple pattern matching for replacement
+                  # Simple pattern matching for replacement
                 replace_patterns = [
                     r'replace["\s]+([^"]+)["\s]+with["\s]+([^"]+)',
                     r'change["\s]+([^"]+)["\s]+to["\s]+([^"]+)',
@@ -174,6 +189,101 @@ User prompt: "{prompt}"
                         "case_sensitive": False
                     },
                     confidence=0.7
+                )
+            elif any(trigger in prompt_lower for trigger in self.available_functions["speech_to_text"]["triggers"]):
+                # Detect language from prompt
+                language = "hindi"  # default
+                
+                # Simple language detection
+                language_keywords = {
+                    "hindi": ["hindi", "हिंदी"],
+                    "gujarati": ["gujarati", "ગુજરાતી"],
+                    "english": ["english", "angrezi"],
+                    "punjabi": ["punjabi", "ਪੰਜਾਬੀ"],
+                    "marathi": ["marathi", "मराठी"],
+                    "bengali": ["bengali", "বাংলা"],
+                    "tamil": ["tamil", "தமிழ்"],
+                    "telugu": ["telugu", "తెలుగు"],
+                    "kannada": ["kannada", "ಕನ್ನಡ"],
+                    "malayalam": ["malayalam", "മലയാളം"]
+                }
+                
+                for lang, keywords in language_keywords.items():
+                    if any(keyword in prompt_lower for keyword in keywords):
+                        language = lang
+                        break
+                
+                return FunctionCall(
+                    function_name="speech_to_text",
+                    parameters={
+                        "language": language,                        "model": "saarika:v2"
+                    },
+                    confidence=0.8
+                )
+            elif any(trigger in prompt_lower for trigger in self.available_functions["text_to_speech"]["triggers"]):
+                # Detect language from prompt
+                language = "hindi"  # default
+                
+                # Simple language detection
+                language_keywords = {
+                    "hindi": ["hindi", "हिंदी"],
+                    "gujarati": ["gujarati", "ગુજરાતી"],
+                    "english": ["english", "angrezi"],
+                    "punjabi": ["punjabi", "ਪੰਜਾਬੀ"],
+                    "marathi": ["marathi", "मराठी"],
+                    "bengali": ["bengali", "বাংলা"],
+                    "tamil": ["tamil", "தமிழ்"],
+                    "telugu": ["telugu", "తెలుగు"],
+                    "kannada": ["kannada", "ಕನ್ನಡ"],
+                    "malayalam": ["malayalam", "മലയാളം"]
+                }
+                
+                for lang, keywords in language_keywords.items():
+                    if any(keyword in prompt_lower for keyword in keywords):
+                        language = lang
+                        break
+                
+                # Try to extract text from prompt
+                text_to_convert = ""
+                
+                # Look for quoted text in the prompt
+                text_patterns = [
+                    r'"([^"]+)"',  # Text in double quotes
+                    r"'([^']+)'",  # Text in single quotes
+                    r'text[:\s]+"([^"]+)"',  # "text: "..."
+                    r'say[:\s]+"([^"]+)"',   # "say: "..."
+                    r'speak[:\s]+"([^"]+)"'  # "speak: "..."
+                ]
+                
+                for pattern in text_patterns:
+                    match = re.search(pattern, prompt, re.IGNORECASE)
+                    if match:
+                        text_to_convert = match.group(1)
+                        break
+                
+                # If no quoted text found, use the whole prompt as text (minus the command part)
+                if not text_to_convert:
+                    # Remove common TTS trigger words from the beginning
+                    clean_prompt = prompt
+                    for trigger in self.available_functions["text_to_speech"]["triggers"]:
+                        clean_prompt = re.sub(r'^' + re.escape(trigger) + r'\s*', '', clean_prompt, flags=re.IGNORECASE)
+                    
+                    # Remove language specifications
+                    for lang in language_keywords.keys():
+                        clean_prompt = re.sub(r'\b' + re.escape(lang) + r'\b', '', clean_prompt, flags=re.IGNORECASE)
+                    
+                    clean_prompt = clean_prompt.strip()
+                    if clean_prompt and len(clean_prompt) > 5:  # Ensure there's meaningful text
+                        text_to_convert = clean_prompt
+                
+                return FunctionCall(
+                    function_name="text_to_speech",
+                    parameters={
+                        "text": text_to_convert,
+                        "language": language,
+                        "format": "wav"
+                    },
+                    confidence=0.8
                 )
             else:
                 # Default to image compression if files are uploaded

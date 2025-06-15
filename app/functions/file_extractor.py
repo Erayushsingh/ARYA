@@ -3,6 +3,7 @@ import zipfile
 import shutil
 import uuid
 from typing import Dict, Any, List
+from app.config import Config
 
 class FileExtractor:
     """Extract files from ZIP archives"""
@@ -11,8 +12,7 @@ class FileExtractor:
         """Execute the file extraction function"""
         if not file_paths:
             raise ValueError("No files provided for extraction")
-            
-        # Get the first ZIP file
+              # Get the first ZIP file
         zip_files = [f for f in file_paths if f.lower().endswith('.zip')]
         if not zip_files:
             raise ValueError("No ZIP files found for extraction")
@@ -20,7 +20,7 @@ class FileExtractor:
         zip_path = zip_files[0]
         extract_id = uuid.uuid4().hex[:8]
         extract_folder = f"extracted_{extract_id}"
-        output_dir = os.path.join("app/file_handler/outputs", extract_folder)
+        output_dir = os.path.join(Config.OUTPUT_DIR, extract_folder)
         
         # Create output directory
         os.makedirs(output_dir, exist_ok=True)
@@ -28,10 +28,9 @@ class FileExtractor:
         # Extract files
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
             zip_ref.extractall(output_dir)
-        
-        # Create summary file
+          # Create summary file
         summary_file = f"file_extraction_summary_{extract_id}.txt"
-        summary_path = os.path.join("app/file_handler/outputs", summary_file)
+        summary_path = os.path.join(Config.OUTPUT_DIR, summary_file)
         
         extracted_files = []
         for root, _, files in os.walk(output_dir):

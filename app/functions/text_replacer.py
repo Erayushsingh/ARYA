@@ -4,6 +4,7 @@ import shutil
 import uuid
 import re
 from typing import Dict, Any, List
+from app.config import Config
 
 class TextReplacer:
     """Replace text in ZIP archive files"""
@@ -17,19 +18,18 @@ class TextReplacer:
         zip_files = [f for f in file_paths if f.lower().endswith('.zip')]
         if not zip_files:
             raise ValueError("No ZIP files found for text replacement")
-        
-        # Get parameters
+          # Get parameters
         find_text = parameters.get("find_text", "")
         replace_text = parameters.get("replace_text", "")
         case_sensitive = parameters.get("case_sensitive", False)
         
         if not find_text:
             raise ValueError("Find text parameter is required")
-            
+        
         zip_path = zip_files[0]
         replace_id = uuid.uuid4().hex[:8]
         extract_folder = f"text_replaced_{replace_id}"
-        output_dir = os.path.join("app/file_handler/outputs", extract_folder)
+        output_dir = os.path.join(Config.OUTPUT_DIR, extract_folder)
         
         # Create output directory
         os.makedirs(output_dir, exist_ok=True)
@@ -47,10 +47,9 @@ class TextReplacer:
                     if self._replace_text_in_file(file_path, find_text, replace_text, case_sensitive):
                         rel_path = os.path.relpath(file_path, output_dir)
                         modified_files.append(rel_path)
-        
-        # Create summary file
+          # Create summary file
         summary_file = f"replacement_summary_{replace_id}.txt"
-        summary_path = os.path.join("app/file_handler/outputs", summary_file)
+        summary_path = os.path.join(Config.OUTPUT_DIR, summary_file)
         
         with open(summary_path, 'w') as f:
             f.write(f"Text Replacement Summary\n")

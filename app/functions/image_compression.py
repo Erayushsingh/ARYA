@@ -2,6 +2,7 @@ from PIL import Image
 import os
 import uuid
 from typing import Dict, Any, List
+from app.config import Config
 
 class ImageCompressor:
     def __init__(self):
@@ -37,11 +38,10 @@ class ImageCompressor:
                     # Resize if dimensions specified
                     if max_width or max_height:
                         img = self._resize_image(img, max_width, max_height)
-                    
-                    # Generate output filename
+                      # Generate output filename
                     original_name = os.path.splitext(os.path.basename(file_path))[0]
                     output_filename = f"{original_name}_compressed_{uuid.uuid4().hex[:8]}.{output_format.lower()}"
-                    output_path = os.path.join("app/file_handler/outputs", output_filename)
+                    output_path = os.path.join(Config.OUTPUT_DIR, output_filename)
                     
                     # Save compressed image
                     save_kwargs = {'format': output_format}

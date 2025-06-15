@@ -86,3 +86,338 @@
     font-size: 0.875rem;
     margin: 0.25rem 0;
 }
+
+/* Speech Recognition Styles */
+#microphoneBtn {
+    border-radius: 0.375rem;
+    transition: all 0.2s ease-in-out;
+}
+
+#microphoneBtn:hover {
+    background-color: #f3f4f6;
+    transform: scale(1.05);
+}
+
+#microphoneBtn.text-red-500 {
+    animation: pulse 1.5s infinite;
+}
+
+#speechStatus {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.25rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+#speechStatus.text-red-500 {
+    background-color: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+/* Microphone animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Responsive adjustments for textarea with microphone */
+.textarea-with-mic {
+    position: relative;
+}
+
+.textarea-with-mic textarea {
+    padding-right: 3rem;
+}
+
+/* Ensure microphone button is always visible */
+@media (max-width: 640px) {
+    #microphoneBtn {
+        right: 0.5rem;
+        top: 0.5rem;
+    }
+    
+    #speechStatus {
+        right: 0.5rem;
+        font-size: 0.625rem;
+    }
+}
+
+/* Google Translate Widget Styles */
+.translate-widget {
+    display: inline-block;
+}
+
+/* Hide Google Translate banner */
+.goog-te-banner-frame {
+    display: none !important;
+}
+
+body {
+    top: 0 !important;
+}
+
+/* Style the Google Translate dropdown */
+.goog-te-gadget {
+    font-family: inherit !important;
+    font-size: 0.875rem !important;
+}
+
+.goog-te-gadget .goog-te-combo {
+    background-color: #ffffff !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.375rem !important;
+    padding: 0.375rem 0.75rem !important;
+    font-size: 0.875rem !important;
+    color: #374151 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease-in-out !important;
+    min-width: 120px !important;
+}
+
+.goog-te-gadget .goog-te-combo:hover {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 1px #3b82f6 !important;
+}
+
+.goog-te-gadget .goog-te-combo:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Hide Google Translate attribution initially, keep powered by text */
+.goog-te-gadget-simple {
+    background-color: transparent !important;
+    border: none !important;
+    font-size: 0.875rem !important;
+}
+
+.goog-te-gadget-simple .goog-te-menu-value {
+    color: #374151 !important;
+}
+
+.goog-te-gadget-simple .goog-te-menu-value span:first-child {
+    display: none;
+}
+
+/* Custom language selector styling */
+.language-selector {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.language-selector-mobile {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive adjustments for language selector */
+@media (max-width: 640px) {
+    .translate-widget {
+        font-size: 0.75rem;
+    }
+    
+    .goog-te-gadget .goog-te-combo {
+        min-width: 100px !important;
+        font-size: 0.75rem !important;
+        padding: 0.25rem 0.5rem !important;
+    }
+    
+    .language-selector {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+/* Improve Google Translate dropdown appearance */
+.goog-te-menu-frame {
+    border-radius: 0.375rem !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Style for when page is being translated */
+html[translate="yes"] {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Loading state for translation */
+.translating {
+    opacity: 0.8;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Quick Language Selector Styles */
+.lang-btn {
+    transition: all 0.2s ease-in-out;
+    font-weight: 500;
+}
+
+.lang-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.lang-btn:active {
+    transform: translateY(0);
+}
+
+.lang-btn.active {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+/* Translation status notification */
+#translation-status {
+    z-index: 9999;
+}
+
+/* Responsive adjustments for language selector */
+@media (max-width: 640px) {
+    .language-selector {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .lang-btn {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.75rem;
+    }
+}
+
+/* Animation for language switching */
+.page-translating {
+    animation: fadeTransition 0.3s ease-in-out;
+}
+
+@keyframes fadeTransition {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+/* Custom Google Translate dropdown styling */
+.goog-te-combo option {
+    padding: 0.5rem;
+    background-color: white;
+}
+
+/* Improve accessibility for language selector */
+.lang-btn:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Welcome message for different languages */
+.welcome-message {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-message.hidden {
+    display: none;
+}
+
+/* Language Dropdown Styles */
+.language-dropdown {
+    min-width: 200px;
+    max-width: 250px;
+    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.language-dropdown:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+    transform: translateY(-1px);
+}
+
+.language-dropdown:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Optgroup styling */
+.language-dropdown optgroup {
+    font-weight: 600;
+    color: #374151;
+    font-size: 13px;
+    background-color: #f9fafb;
+    padding: 4px 0;
+}
+
+.language-dropdown option {
+    padding: 6px 8px;
+    font-size: 14px;
+    color: #374151;
+    background-color: #ffffff;
+    border: none;
+}
+
+.language-dropdown option:hover {
+    background-color: #f3f4f6;
+}
+
+.language-dropdown option:checked {
+    background-color: #3b82f6;
+    color: white;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+    .language-dropdown {
+        min-width: 160px;
+        max-width: 180px;
+        font-size: 13px;
+        padding: 6px 10px;
+    }
+    
+    .language-dropdown option {
+        padding: 4px 6px;
+        font-size: 13px;
+    }
+}
+
+/* Language indicator */
+.language-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #10b981;
+    margin-left: 8px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}

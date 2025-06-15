@@ -147,11 +147,31 @@ The application uses a modular architecture:
 
 ## Configuration
 
-The Gemini API key is currently hardcoded in `app/client/gemini_client.py`. For production use, move this to environment variables:
+Create a `.env` file in your project root with the following variables:
 
-```python
-api_key = os.getenv('GOOGLE_GEMINI_KEY', 'your-api-key-here')
+```env
+# Environment Configuration
+GOOGLE_GEMINI_KEY=your-actual-api-key-here
+HOST=0.0.0.0
+PORT=8001
+DEBUG=True
+
+# File Upload Settings
+MAX_FILE_SIZE=50MB
+ALLOWED_EXTENSIONS=.jpg,.jpeg,.png,.bmp,.tiff,.webp,.docx
+
+# Function Settings
+DEFAULT_IMAGE_QUALITY=85
+DEFAULT_PAGE_SIZE=A4
+DEFAULT_ORIENTATION=portrait
+
+# Cleanup Settings
+CLEANUP_INTERVAL_HOURS=24
 ```
+
+**Important**: Replace `your-actual-api-key-here` with your actual Google Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey).
+
+The application will automatically load these settings from the `.env` file using the `Config` class in `app/config.py`.
 
 ## License
 

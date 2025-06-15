@@ -4,6 +4,8 @@ from app.functions.word_to_pdf import WordToPdfConverter
 from app.functions.image_to_pdf import ImageToPdfConverter
 from app.functions.file_extractor import FileExtractor
 from app.functions.text_replacer import TextReplacer
+from app.functions.speech_to_text import SpeechToTextConverter
+from app.functions.text_to_speech import TextToSpeechConverter
 
 class FunctionRegistry:
     def __init__(self):
@@ -12,7 +14,9 @@ class FunctionRegistry:
             "word_to_pdf": WordToPdfConverter(),
             "image_to_pdf": ImageToPdfConverter(),
             "extract_files": FileExtractor(),
-            "replace_text": TextReplacer()
+            "replace_text": TextReplacer(),
+            "speech_to_text": SpeechToTextConverter(),
+            "text_to_speech": TextToSpeechConverter()
         }
     
     async def execute_function(self, function_name: str, parameters: Dict[str, Any], file_paths: List[str]) -> Dict[str, Any]:
