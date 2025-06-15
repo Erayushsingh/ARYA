@@ -3,16 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />    <title>Arya-Simple and Elegant</title>
-    <!-- Prevent FOUC for dark mode -->
-    <script>
-        (function() {
-            const savedTheme = localStorage.getItem('theme');
-            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-                document.documentElement.classList.add('dark');
-            }
-        })();
-    </script>
     <link
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
       rel="stylesheet"
@@ -307,21 +297,20 @@
             >
               <i class="fas fa-cloud-upload-alt text-green-500"></i>
               <span>Upload Files</span>
-            </label>
-            <div
+            </label>            <div
+              id="dropZone"
               class="border-3 border-dashed border-gray-300 dark:border-gray-600 rounded-3xl p-12 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:bg-blue-50/50 dark:hover:bg-gray-700/30 backdrop-blur-sm group relative overflow-hidden"
             >
               <!-- Upload animation background -->
               <div class="absolute inset-0 bg-gradient-to-r from-blue-400/5 via-purple-400/5 to-green-400/5 group-hover:from-blue-400/10 group-hover:via-purple-400/10 group-hover:to-green-400/10 transition-all duration-500"></div>
-              <div class="relative z-10">
-              <input
+              <div class="relative z-10">              <input
                 type="file"
                 id="files"
                 name="files"
                 multiple
                 class="hidden"
-                accept=".jpg,.jpeg,.png,.bmp,.tiff,.webp,.docx,.zip"
-              />              <label for="files" class="cursor-pointer block">
+                accept=".jpg,.jpeg,.png,.bmp,.tiff,.webp,.docx,.zip,.wav,.mp3,.flac,.aac,.m4a,.ogg,.pdf,.txt"
+              /><label for="files" class="cursor-pointer block">
                 <div class="text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all duration-300">
                   <i class="fas fa-cloud-upload-alt text-6xl mb-6 group-hover:scale-110 transition-transform duration-300"></i>
                   <h3 class="text-xl font-semibold mb-3">Drop files here or click to browse</h3>

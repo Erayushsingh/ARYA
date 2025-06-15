@@ -13,9 +13,21 @@ document.addEventListener('DOMContentLoaded', function () {
     const loadingSpinner = document.getElementById('loadingSpinner');
     const results = document.getElementById('results');
     const resultContent = document.getElementById('resultContent');
-    const dropZone = fileInput.parentElement;
+    const dropZone = document.getElementById('dropZone');
 
     let selectedFiles = [];
+
+    // Debug: Check if elements exist
+    console.log('Elements found:');
+    console.log('form:', form);
+    console.log('fileInput:', fileInput);
+    console.log('fileList:', fileList);
+    console.log('dropZone:', dropZone);
+
+    if (!fileInput || !fileList || !dropZone) {
+        console.error('Required elements not found!');
+        return;
+    }
 
     // Handle file selection
     fileInput.addEventListener('change', function (e) {
@@ -37,47 +49,160 @@ document.addEventListener('DOMContentLoaded', function () {
         e.preventDefault();
         dropZone.classList.remove('drag-over');
         handleFiles(e.dataTransfer.files);
-    });
-
-    function handleFiles(files) {
+    }); function handleFiles(files) {
+        console.log('Files selected:', files.length);
         // Add new files to selectedFiles array
         for (let file of files) {
+            console.log('Processing file:', file.name, file.size, file.type);
             // Check if file is already selected
             if (!selectedFiles.find(f => f.name === file.name && f.size === file.size)) {
                 selectedFiles.push(file);
+                console.log('File added to selection:', file.name);
+            } else {
+                console.log('File already selected:', file.name);
             }
         }
+        console.log('Total selected files:', selectedFiles.length);
         updateFileList();
-    }
+    } function updateFileList() {
+        console.log('Updating file list, selected files:', selectedFiles.length);
+        // Force clear and reset the fileList container
+        if (fileList) {
+            fileList.innerHTML = '';
+            fileList.style.display = 'block';
+            fileList.style.visibility = 'visible';
+            fileList.style.opacity = '1';
+            fileList.style.height = 'auto';
+            fileList.style.zIndex = '99999';
+            fileList.style.position = 'relative';
+            console.log('FileList container reset with z-index 99999');
+        } else {
+            console.error('FileList element not found!');
+            return;
+        }
 
-    function updateFileList() {
-        fileList.innerHTML = '';
+        if (selectedFiles.length === 0) {
+            console.log('No files selected, hiding file list');
+            fileList.style.display = 'none';
+            return;
+        }
+
+        // Add a header for the file list
+        const header = document.createElement('div');
+        header.className = 'file-list-header'; header.style.cssText = `
+            margin-bottom: 1rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+            font-size: 1.125rem !important;
+            font-weight: 600 !important;
+            color: #1f2937 !important;
+            padding: 0.5rem 0 !important;
+            border-bottom: 1px solid #e5e7eb !important;
+            z-index: 99996 !important;
+            position: relative !important;
+        `;
+        header.innerHTML = `
+            <i class="fas fa-paperclip" style="color: #3b82f6 !important; font-size: 1rem !important;"></i>
+            <span>Selected Files (${selectedFiles.length})</span>
+        `;
+        fileList.appendChild(header);
+        console.log('Header added to file list');
 
         selectedFiles.forEach((file, index) => {
+            console.log('Creating file item for:', file.name);
             const fileItem = document.createElement('div');
             fileItem.className = 'file-item';
+            // Force visibility with inline styles
+            fileItem.style.cssText = `
+                background: rgba(255, 255, 255, 0.95) !important;
+                border: 2px solid #e5e7eb !important;
+                border-radius: 1rem !important;
+                padding: 1rem !important;
+                margin: 0.75rem 0 !important;
+                display: flex !important;
+                justify-content: space-between !important;
+                align-items: center !important;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+                transition: all 0.3s ease !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+                min-height: 60px !important;
+                z-index: 99997 !important;
+                position: relative !important;
+            `;
+
+            // Get file type icon
+            const fileIcon = getFileIcon(file.name);
 
             fileItem.innerHTML = `
-                <span class="file-name">${file.name} (${formatFileSize(file.size)})</span>
-                <button type="button" class="remove-file" onclick="removeFile(${index})">Remove</button>
+                <div style="display: flex !important; align-items: center !important; gap: 0.75rem !important; flex-grow: 1 !important;">
+                    <div style="font-size: 1.5rem !important; min-width: 2rem !important;">${fileIcon}</div>
+                    <div style="flex-grow: 1 !important; min-width: 0 !important;">
+                        <div style="font-size: 0.875rem !important; color: #1f2937 !important; font-weight: 500 !important; word-break: break-all !important;">${file.name}</div>
+                        <div style="font-size: 0.75rem !important; color: #6b7280 !important; margin-top: 0.25rem !important;">${formatFileSize(file.size)} • ${file.type || 'Unknown type'}</div>
+                    </div>
+                </div>
+                <button type="button" style="
+                    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+                    color: white !important;
+                    border: none !important;
+                    border-radius: 0.5rem !important;
+                    padding: 0.5rem 0.75rem !important;
+                    font-size: 0.75rem !important;
+                    font-weight: 500 !important;
+                    cursor: pointer !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    gap: 0.25rem !important;
+                    transition: all 0.2s ease !important;
+                " onclick="removeFile(${index})" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                    <i class="fas fa-times"></i>
+                    <span>Remove</span>
+                </button>
             `;
 
             fileList.appendChild(fileItem);
+            console.log('File item added for:', file.name);
         });
-    }
 
-    // Make removeFile globally accessible
+        // Force a reflow to ensure rendering
+        fileList.offsetHeight;
+        console.log('File list updated, DOM elements created:', fileList.children.length);
+        console.log('FileList final styles:', window.getComputedStyle(fileList).display, window.getComputedStyle(fileList).visibility);
+    }// Make removeFile globally accessible
     window.removeFile = function (index) {
+        console.log('Removing file at index:', index);
         selectedFiles.splice(index, 1);
+        console.log('Files remaining:', selectedFiles.length);
         updateFileList();
-    };
-
-    function formatFileSize(bytes) {
+    }; function formatFileSize(bytes) {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function getFileIcon(filename) {
+        const extension = filename.split('.').pop().toLowerCase();
+        const iconMap = {
+            // Images
+            'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️', 'bmp': '🖼️', 'tiff': '🖼️', 'webp': '🖼️',
+            // Documents
+            'pdf': '📄', 'doc': '📝', 'docx': '📝', 'txt': '📄', 'rtf': '📄',
+            // Archives
+            'zip': '📦', 'rar': '📦', '7z': '📦', 'tar': '📦', 'gz': '📦',
+            // Audio
+            'mp3': '🎵', 'wav': '🎵', 'flac': '🎵', 'aac': '🎵', 'm4a': '🎵', 'ogg': '🎵',
+            // Video
+            'mp4': '🎬', 'avi': '🎬', 'mov': '🎬', 'wmv': '🎬', 'mkv': '🎬',
+            // Spreadsheets
+            'xls': '📊', 'xlsx': '📊', 'csv': '📊',
+            // Presentations
+            'ppt': '📊', 'pptx': '📊'
+        };
+        return iconMap[extension] || '📄';
     }
 
     // Handle form submission
@@ -713,7 +838,7 @@ function changeLanguage(langCode) {
 function addTranslationTooltip() {
     const translateElement = document.getElementById('google_translate_element');
     if (translateElement) {
-        translateElement.title = 'Select your language / अपनी भाषा चुनें / તમારી ભાષા પસંદ કરો';
+        translateElement.title = 'Select your language / अपनी भाषा चुनें / તમારી ભાષा પસંદ કરો';
     }
 
     // Add tooltip to custom dropdown
@@ -1005,3 +1130,20 @@ function audioBufferToWav(buffer) {
 
     return arrayBuffer;
 }
+
+// Test function to debug file list rendering
+window.testFileList = function () {
+    console.log('Testing file list rendering...');
+    const testFile = new File(['test'], 'test.txt', { type: 'text/plain' });
+    selectedFiles = [testFile];
+    updateFileList();
+};
+
+// Also add this to global scope for debugging
+window.debugFileList = function () {
+    console.log('FileList element:', fileList);
+    console.log('FileList display:', fileList ? window.getComputedStyle(fileList).display : 'Element not found');
+    console.log('FileList visibility:', fileList ? window.getComputedStyle(fileList).visibility : 'Element not found');
+    console.log('FileList children:', fileList ? fileList.children.length : 'Element not found');
+    console.log('Selected files:', selectedFiles.length);
+};
