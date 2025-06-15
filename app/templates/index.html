@@ -1,309 +1,435 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LLM Function Calling - File Processor</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    <title>Arya-Simple and Elegant</title>
+    <!-- Prevent FOUC for dark mode -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />    <link rel="stylesheet" href="/static/style.css" />
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Translate -->
     <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'en',
-                includedLanguages: 'en,hi,gu,pa,mr,bn,ta,te,kn,ml,or,as,fr,es,de,it,pt,ru,ja,ko,zh,ar,tr,nl,sv,pl,da,no,fi,cs,hu,ro,bg,hr,sk,sl,et,lv,lt,mt,el,cy,ga,is,mk,sq,sr,bs,ca,eu,gl,lb,ms,th,vi,id,tl,sw,zu,af,am,az,be,ka,hy,kk,ky,mn,ne,ps,fa,si,ta,te,ur,uz,yi',
-                layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL,
-                autoDisplay: false,
-                multilanguagePage: true
-            }, 'google_translate_element');
-        }
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement(
+          {
+            pageLanguage: "en",
+            includedLanguages:
+              "en,hi,gu,pa,mr,bn,ta,te,kn,ml,or,as,fr,es,de,it,pt,ru,ja,ko,zh,ar,tr,nl,sv,pl,da,no,fi,cs,hu,ro,bg,hr,sk,sl,et,lv,lt,mt,el,cy,ga,is,mk,sq,sr,bs,ca,eu,gl,lb,ms,th,vi,id,tl,sw,zu,af,am,az,be,ka,hy,kk,ky,mn,ne,ps,fa,si,ta,te,ur,uz,yi",
+            layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL,
+            autoDisplay: false,
+            multilanguagePage: true,
+          },
+          "google_translate_element"
+        );
+      }
     </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-</head>
-<body class="bg-gray-50 min-h-screen">
-    <div class="container mx-auto px-4 py-8">        <!-- Language Selector Header -->
-        <div class="flex justify-between items-center mb-4">
-            <div class="flex items-center space-x-4">
-                <div class="flex items-center space-x-2">
-                    <span class="text-sm font-medium text-gray-700">🌐 Language:</span>
-                    <!-- Custom Language Dropdown -->
-                    <div class="relative">
-                        <select id="languageDropdown" class="language-dropdown bg-white border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 cursor-pointer">
-                            <option value="en">🇺🇸 English</option>
-                            <optgroup label="🇮🇳 Indian Languages">
-                                <option value="hi">🇮🇳 हिंदी (Hindi)</option>
-                                <option value="gu">🇮🇳 ગુજરાતી (Gujarati)</option>
-                                <option value="ta">🇮🇳 தமிழ் (Tamil)</option>
-                                <option value="te">🇮🇳 తెలుగు (Telugu)</option>
-                                <option value="bn">🇮🇳 বাংলা (Bengali)</option>
-                                <option value="mr">🇮🇳 मराठी (Marathi)</option>
-                                <option value="pa">🇮🇳 ਪੰਜਾਬੀ (Punjabi)</option>
-                                <option value="kn">🇮🇳 ಕನ್ನಡ (Kannada)</option>
-                                <option value="ml">🇮🇳 മലയാളം (Malayalam)</option>
-                                <option value="or">🇮🇳 ଓଡ଼ିଆ (Odia)</option>
-                                <option value="as">🇮🇳 অসমীয়া (Assamese)</option>
-                                <option value="ur">🇮🇳 اردو (Urdu)</option>
-                                <option value="sa">🇮🇳 संस्कृत (Sanskrit)</option>
-                                <option value="ne">🇳🇵 नेपाली (Nepali)</option>
-                                <option value="si">🇱🇰 සිංහල (Sinhala)</option>
-                            </optgroup>
-                            <optgroup label="🌍 Popular Languages">
-                                <option value="zh">🇨🇳 中文 (Chinese)</option>
-                                <option value="ja">🇯🇵 日本語 (Japanese)</option>
-                                <option value="ko">🇰🇷 한국어 (Korean)</option>
-                                <option value="ar">🇸🇦 العربية (Arabic)</option>
-                                <option value="fr">🇫🇷 Français (French)</option>
-                                <option value="es">🇪🇸 Español (Spanish)</option>
-                                <option value="de">🇩🇪 Deutsch (German)</option>
-                                <option value="it">🇮🇹 Italiano (Italian)</option>
-                                <option value="pt">🇵🇹 Português (Portuguese)</option>
-                                <option value="ru">🇷🇺 Русский (Russian)</option>
-                                <option value="tr">🇹🇷 Türkçe (Turkish)</option>
-                                <option value="nl">🇳🇱 Nederlands (Dutch)</option>
-                                <option value="sv">🇸🇪 Svenska (Swedish)</option>
-                                <option value="pl">🇵🇱 Polski (Polish)</option>
-                                <option value="da">🇩🇰 Dansk (Danish)</option>
-                                <option value="no">🇳🇴 Norsk (Norwegian)</option>
-                                <option value="fi">🇫🇮 Suomi (Finnish)</option>
-                            </optgroup>
-                            <optgroup label="🌏 Asian Languages">
-                                <option value="th">🇹🇭 ไทย (Thai)</option>
-                                <option value="vi">🇻🇳 Tiếng Việt (Vietnamese)</option>
-                                <option value="id">🇮🇩 Bahasa Indonesia</option>
-                                <option value="ms">🇲🇾 Bahasa Melayu (Malay)</option>
-                                <option value="tl">🇵🇭 Filipino (Tagalog)</option>
-                                <option value="my">🇲🇲 မြန်မာ (Myanmar)</option>
-                                <option value="km">🇰🇭 ខ្មែរ (Khmer)</option>
-                                <option value="lo">🇱🇦 ລາວ (Lao)</option>
-                            </optgroup>
-                            <optgroup label="🌍 African Languages">
-                                <option value="sw">🇰🇪 Kiswahili (Swahili)</option>
-                                <option value="zu">🇿🇦 isiZulu (Zulu)</option>
-                                <option value="af">🇿🇦 Afrikaans</option>
-                                <option value="am">🇪🇹 አማርኛ (Amharic)</option>
-                                <option value="ha">🇳🇬 Hausa</option>
-                                <option value="ig">🇳🇬 Igbo</option>
-                                <option value="yo">🇳🇬 Yorùbá</option>
-                            </optgroup>
-                            <optgroup label="🌎 American Languages">
-                                <option value="pt-br">🇧🇷 Português (Brasil)</option>
-                                <option value="es-mx">🇲🇽 Español (México)</option>
-                                <option value="fr-ca">🇨🇦 Français (Canada)</option>
-                            </optgroup>
-                            <optgroup label="🌐 Other Languages">
-                                <option value="he">🇮🇱 עברית (Hebrew)</option>
-                                <option value="el">🇬🇷 Ελληνικά (Greek)</option>
-                                <option value="cs">🇨🇿 Čeština (Czech)</option>
-                                <option value="hu">🇭🇺 Magyar (Hungarian)</option>
-                                <option value="ro">🇷🇴 Română (Romanian)</option>
-                                <option value="bg">🇧🇬 Български (Bulgarian)</option>
-                                <option value="hr">🇭🇷 Hrvatski (Croatian)</option>
-                                <option value="sk">🇸🇰 Slovenčina (Slovak)</option>
-                                <option value="sl">🇸🇮 Slovenščina (Slovenian)</option>
-                                <option value="et">🇪🇪 Eesti (Estonian)</option>
-                                <option value="lv">🇱🇻 Latviešu (Latvian)</option>
-                                <option value="lt">🇱🇹 Lietuvių (Lithuanian)</option>
-                                <option value="mt">🇲🇹 Malti (Maltese)</option>
-                                <option value="cy">🏴󠁧󠁢󠁷󠁬󠁳󠁿 Cymraeg (Welsh)</option>
-                                <option value="ga">🇮🇪 Gaeilge (Irish)</option>
-                                <option value="is">🇮🇸 Íslenska (Icelandic)</option>
-                                <option value="mk">🇲🇰 Македонски (Macedonian)</option>
-                                <option value="sq">🇦🇱 Shqip (Albanian)</option>
-                                <option value="sr">🇷🇸 Српски (Serbian)</option>
-                                <option value="bs">🇧🇦 Bosanski (Bosnian)</option>
-                                <option value="ca">🇪🇸 Català (Catalan)</option>
-                                <option value="eu">🇪🇸 Euskera (Basque)</option>
-                                <option value="gl">🇪🇸 Galego (Galician)</option>
-                                <option value="lb">🇱🇺 Lëtzebuergesch (Luxembourgish)</option>
-                            </optgroup>
-                        </select>
-                    </div>
-                    <!-- Original Google Translate Element (hidden) -->
-                    <div id="google_translate_element" class="translate-widget hidden"></div>
-                </div>
-            </div>            <div class="text-right">
-                <div class="text-xs text-gray-500">
-                    Powered by Google Translate
-                </div>
-                <div class="text-xs text-gray-400 mt-1">
-                    💡 Shortcuts: Alt+L (Language Menu) | Alt+1-9 (Quick Select)
-                </div>
+    <script
+      type="text/javascript"
+      src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
+    ></script>
+  </head>
+  <body class="font-inter bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 min-h-screen transition-all duration-300">    <div class="min-h-screen bg-transparent">
+      <!-- Modern Background Pattern -->
+      <div class="absolute inset-0 bg-grid-pattern opacity-5 dark:opacity-10"></div>
+      <div class="relative z-10">
+    <div class="container mx-auto px-4 py-8 pb-20 max-w-7xl">        <!-- Language Selector Header -->        <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg rounded-2xl p-6 shadow-lg border border-white/20 dark:border-gray-700/50 mb-12">
+          <!-- Language Selector Row -->
+          <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-6">
+              <div class="flex items-center space-x-3">
+                <i class="fas fa-globe text-blue-500 text-lg"></i>
+                <span class="text-sm font-semibold text-gray-700 dark:text-gray-200 transition-colors duration-200">Language:</span>
+                <!-- Custom Language Dropdown -->
+                <div class="relative">
+                  <select
+                    id="languageDropdown"
+                    class="language-dropdown bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer text-gray-800 dark:text-gray-200 transition-all duration-200 shadow-sm hover:shadow-md"
+                  >
+                <option value="en">🇺🇸 English</option>
+                <optgroup label="🇮🇳 Indian Languages">
+                  <option value="hi">🇮🇳 हिंदी (Hindi)</option>
+                  <option value="gu">🇮🇳 ગુજરાતી (Gujarati)</option>
+                  <option value="ta">🇮🇳 தமிழ் (Tamil)</option>
+                  <option value="te">🇮🇳 తెలుగు (Telugu)</option>
+                  <option value="bn">🇮🇳 বাংলা (Bengali)</option>
+                  <option value="mr">🇮🇳 मराठी (Marathi)</option>
+                  <option value="pa">🇮🇳 ਪੰਜਾਬੀ (Punjabi)</option>
+                  <option value="kn">🇮🇳 ಕನ್ನಡ (Kannada)</option>
+                  <option value="ml">🇮🇳 മലയാളം (Malayalam)</option>
+                  <option value="or">🇮🇳 ଓଡ଼ିଆ (Odia)</option>
+                  <option value="as">🇮🇳 অসমীয়া (Assamese)</option>
+                  <option value="ur">🇮🇳 اردو (Urdu)</option>
+                  <option value="sa">🇮🇳 संस्कृत (Sanskrit)</option>
+                  <option value="ne">🇳🇵 नेपाली (Nepali)</option>
+                  <option value="si">🇱🇰 සිංහල (Sinhala)</option>
+                </optgroup>
+                <optgroup label="🌍 Popular Languages">
+                  <option value="zh">🇨🇳 中文 (Chinese)</option>
+                  <option value="ja">🇯🇵 日本語 (Japanese)</option>
+                  <option value="ko">🇰🇷 한국어 (Korean)</option>
+                  <option value="ar">🇸🇦 العربية (Arabic)</option>
+                  <option value="fr">🇫🇷 Français (French)</option>
+                  <option value="es">🇪🇸 Español (Spanish)</option>
+                  <option value="de">🇩🇪 Deutsch (German)</option>
+                  <option value="it">🇮🇹 Italiano (Italian)</option>
+                  <option value="pt">🇵🇹 Português (Portuguese)</option>
+                  <option value="ru">🇷🇺 Русский (Russian)</option>
+                  <option value="tr">🇹🇷 Türkçe (Turkish)</option>
+                  <option value="nl">🇳🇱 Nederlands (Dutch)</option>
+                  <option value="sv">🇸🇪 Svenska (Swedish)</option>
+                  <option value="pl">🇵🇱 Polski (Polish)</option>
+                  <option value="da">🇩🇰 Dansk (Danish)</option>
+                  <option value="no">🇳🇴 Norsk (Norwegian)</option>
+                  <option value="fi">🇫🇮 Suomi (Finnish)</option>
+                </optgroup>
+                <optgroup label="🌏 Asian Languages">
+                  <option value="th">🇹🇭 ไทย (Thai)</option>
+                  <option value="vi">🇻🇳 Tiếng Việt (Vietnamese)</option>
+                  <option value="id">🇮🇩 Bahasa Indonesia</option>
+                  <option value="ms">🇲🇾 Bahasa Melayu (Malay)</option>
+                  <option value="tl">🇵🇭 Filipino (Tagalog)</option>
+                  <option value="my">🇲🇲 မြန်မာ (Myanmar)</option>
+                  <option value="km">🇰🇭 ខ្មែរ (Khmer)</option>
+                  <option value="lo">🇱🇦 ລາວ (Lao)</option>
+                </optgroup>
+                <optgroup label="🌍 African Languages">
+                  <option value="sw">🇰🇪 Kiswahili (Swahili)</option>
+                  <option value="zu">🇿🇦 isiZulu (Zulu)</option>
+                  <option value="af">🇿🇦 Afrikaans</option>
+                  <option value="am">🇪🇹 አማርኛ (Amharic)</option>
+                  <option value="ha">🇳🇬 Hausa</option>
+                  <option value="ig">🇳🇬 Igbo</option>
+                  <option value="yo">🇳🇬 Yorùbá</option>
+                </optgroup>
+                <optgroup label="🌎 American Languages">
+                  <option value="pt-br">🇧🇷 Português (Brasil)</option>
+                  <option value="es-mx">🇲🇽 Español (México)</option>
+                  <option value="fr-ca">🇨🇦 Français (Canada)</option>
+                </optgroup>
+                <optgroup label="🌐 Other Languages">
+                  <option value="he">🇮🇱 עברית (Hebrew)</option>
+                  <option value="el">🇬🇷 Ελληνικά (Greek)</option>
+                  <option value="cs">🇨🇿 Čeština (Czech)</option>
+                  <option value="hu">🇭🇺 Magyar (Hungarian)</option>
+                  <option value="ro">🇷🇴 Română (Romanian)</option>
+                  <option value="bg">🇧🇬 Български (Bulgarian)</option>
+                  <option value="hr">🇭🇷 Hrvatski (Croatian)</option>
+                  <option value="sk">🇸🇰 Slovenčina (Slovak)</option>
+                  <option value="sl">🇸🇮 Slovenščina (Slovenian)</option>
+                  <option value="et">🇪🇪 Eesti (Estonian)</option>
+                  <option value="lv">🇱🇻 Latviešu (Latvian)</option>
+                  <option value="lt">🇱🇹 Lietuvių (Lithuanian)</option>
+                  <option value="mt">🇲🇹 Malti (Maltese)</option>
+                  <option value="cy">🏴󠁧󠁢󠁷󠁬󠁳󠁿 Cymraeg (Welsh)</option>
+                  <option value="ga">🇮🇪 Gaeilge (Irish)</option>
+                  <option value="is">🇮🇸 Íslenska (Icelandic)</option>
+                  <option value="mk">🇲🇰 Македонски (Macedonian)</option>
+                  <option value="sq">🇦🇱 Shqip (Albanian)</option>
+                  <option value="sr">🇷🇸 Српски (Serbian)</option>
+                  <option value="bs">🇧🇦 Bosanski (Bosnian)</option>
+                  <option value="ca">🇪🇸 Català (Catalan)</option>
+                  <option value="eu">🇪🇸 Euskera (Basque)</option>
+                  <option value="gl">🇪🇸 Galego (Galician)</option>
+                  <option value="lb">🇱🇺 Lëtzebuergesch (Luxembourgish)</option>
+                </optgroup>
+              </select>
+            </div>            <!-- Original Google Translate Element (hidden) -->
+            <div
+              id="google_translate_element"
+              class="translate-widget hidden"
+            ></div>
+              </div>
             </div>
-        </div>
-          <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-gray-800 mb-2">
-                🤖 LLM Function Calling
-            </h1>
-            <p class="text-gray-600">
-                Upload files and describe what you want to do - our AI will figure out the rest!
+            
+            <div class="text-right">
+              <div class="text-xs text-gray-500 dark:text-gray-400">Powered by Google Translate</div>
+              <div class="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                💡 Shortcuts: Alt+L (Language Menu) | Alt+1-9 (Quick Select)
+              </div>
+            </div>
+          </div>
+          
+         
+        </div><!-- Header -->
+      <div class="text-center mb-16 relative">        <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>        
+        
+        <!-- Banner Style Paragraph -->
+        <div class="relative bg-gradient-to-r from-blue-50 via-purple-50 to-indigo-50 dark:from-blue-900/30 dark:via-purple-900/30 dark:to-indigo-900/30 border border-blue-200/50 dark:border-blue-700/50 rounded-2xl p-8 mx-auto max-w-4xl mb-8 backdrop-blur-sm shadow-lg">
+          <div class="absolute inset-0 bg-gradient-to-r from-blue-100/20 via-purple-100/20 to-indigo-100/20 dark:from-blue-800/10 dark:via-purple-800/10 dark:to-indigo-800/10 rounded-2xl"></div>
+          <div class="relative z-10 flex items-center justify-center space-x-4">
+            <div class="flex-shrink-0">
+              <i class="fas fa-bullhorn text-blue-500 text-2xl"></i>
+            </div>
+            <p class="text-lg md:text-xl text-gray-700 dark:text-gray-200 font-medium leading-relaxed text-center">
+              <span class="font-semibold text-blue-600 dark:text-blue-400">Our Focus:</span> 
+              Serving the larger population with clean and simple UI - no fancy elements, just the important stuff that matters.
             </p>
-            <p class="text-sm text-gray-500 mt-2">
-                <span class="inline-block mr-4">🗣️ Support for 12+ Indian Languages</span>
-                <span class="inline-block mr-4">🎤 Voice Input Available</span>
-                <span class="inline-block">🌍 Multilingual Interface</span>
+          </div>
+          <div class="absolute top-2 right-4 opacity-30">
+            <i class="fas fa-quote-right text-blue-300 dark:text-blue-600 text-sm"></i>
+          </div>
+        </div>
+        <div class="flex flex-wrap justify-center items-center gap-6 mt-8">
+          <div class="flex items-center space-x-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm px-4 py-2 rounded-full shadow-md border border-white/30 dark:border-gray-700/30">
+            <i class="fas fa-language text-green-500"></i>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">12+ Indian Languages</span>
+          </div>
+          <div class="flex items-center space-x-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm px-4 py-2 rounded-full shadow-md border border-white/30 dark:border-gray-700/30">
+            <i class="fas fa-microphone text-blue-500"></i>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Voice Input Available</span>
+          </div>
+          <div class="flex items-center space-x-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm px-4 py-2 rounded-full shadow-md border border-white/30 dark:border-gray-700/30">
+            <i class="fas fa-globe text-purple-500"></i>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Multilingual Interface</span>
+          </div>
+        </div>
+      </div>      <!-- Quick Language Selector -->        <div class="language-selector flex flex-wrap justify-center items-center gap-4 mb-16">
+        <div class="flex items-center space-x-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-6 py-3 rounded-2xl shadow-lg border border-white/30 dark:border-gray-700/30">
+          <i class="fas fa-rocket text-orange-500"></i>
+          <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Quick Language:</span>
+        </div>        <button
+          onclick="changeLanguage('en')"
+          class="lang-btn px-6 py-3 text-sm bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-gray-200 dark:border-gray-600 rounded-2xl hover:bg-blue-50 dark:hover:bg-gray-600 hover:border-blue-300 dark:hover:border-blue-400 transition-all duration-300 text-gray-800 dark:text-gray-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 group"
+        >
+          <span class="mr-2">🇺🇸</span>
+          <span class="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">English</span>
+        </button>
+        <button
+          onclick="changeLanguage('hi')"
+          class="lang-btn px-6 py-3 text-sm bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-gray-200 dark:border-gray-600 rounded-2xl hover:bg-blue-50 dark:hover:bg-gray-600 hover:border-blue-300 dark:hover:border-blue-400 transition-all duration-300 text-gray-800 dark:text-gray-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 group"
+        >
+          <span class="mr-2">🇮🇳</span>
+          <span class="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">हिंदी</span>
+        </button>
+        <button
+          onclick="changeLanguage('gu')"
+          class="lang-btn px-6 py-3 text-sm bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-gray-200 dark:border-gray-600 rounded-2xl hover:bg-blue-50 dark:hover:bg-gray-600 hover:border-blue-300 dark:hover:border-blue-400 transition-all duration-300 text-gray-800 dark:text-gray-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 group"
+        >          <span class="mr-2">🇮🇳</span>
+          <span class="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">ગુજરાતી</span>
+        </button>        <button
+          onclick="changeLanguage('ta')"
+          class="lang-btn px-6 py-3 text-sm bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-gray-200 dark:border-gray-600 rounded-2xl hover:bg-blue-50 dark:hover:bg-gray-600 hover:border-blue-300 dark:hover:border-blue-400 transition-all duration-300 text-gray-800 dark:text-gray-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 group"
+        >
+          <span class="mr-2">🇮🇳</span>
+          <span class="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">தமிழ்</span>
+        </button>
+        <button
+          onclick="changeLanguage('te')"
+          class="lang-btn px-6 py-3 text-sm bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-gray-200 dark:border-gray-600 rounded-2xl hover:bg-blue-50 dark:hover:bg-gray-600 hover:border-blue-300 dark:hover:border-blue-400 transition-all duration-300 text-gray-800 dark:text-gray-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 group"
+        >
+          <span class="mr-2">🇮🇳</span>
+          <span class="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">తెలుగు</span>
+        </button>
+        <button
+          onclick="changeLanguage('bn')"
+          class="lang-btn px-6 py-3 text-sm bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-gray-200 dark:border-gray-600 rounded-2xl hover:bg-blue-50 dark:hover:bg-gray-600 hover:border-blue-300 dark:hover:border-blue-400 transition-all duration-300 text-gray-800 dark:text-gray-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 group"
+        >
+          <span class="mr-2">🇮🇳</span>
+          <span class="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">বাংলা</span>
+        </button>
+        <button
+          onclick="changeLanguage('mr')"
+          class="lang-btn px-6 py-3 text-sm bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm border border-gray-200 dark:border-gray-600 rounded-2xl hover:bg-blue-50 dark:hover:bg-gray-600 hover:border-blue-300 dark:hover:border-blue-400 transition-all duration-300 text-gray-800 dark:text-gray-200 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 group"
+        >
+          <span class="mr-2">🇮🇳</span>
+          <span class="group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">मराठी</span>
+        </button>
+        <div class="text-xs text-gray-400 dark:text-gray-500 ml-2 transition-colors duration-200">
+          <span>Alt+L for more languages</span>
+        </div>
+      </div>      <!-- Main Form -->
+      <div class="max-w-5xl mx-auto bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl p-10 border border-white/20 dark:border-gray-700/50 relative overflow-hidden mb-16">
+        <!-- Decorative elements -->
+        <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/20 to-purple-500/20 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-green-400/20 to-blue-500/20 rounded-full blur-3xl"></div>
+        <div class="relative z-10">        <form id="processForm" enctype="multipart/form-data" class="space-y-10">
+          <!-- Prompt Input -->
+          <div class="relative">
+            <label
+              for="prompt"
+              class="flex items-center space-x-2 text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4"
+            >
+              <i class="fas fa-magic text-purple-500"></i>
+              <span>What would you like to do?</span>
+            </label>
+            <div class="relative group">              <textarea
+                id="prompt"
+                name="prompt"
+                rows="5"
+                class="w-full px-6 py-4 pr-16 border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 resize-none dark:bg-gray-700/50 dark:text-white dark:placeholder-gray-400 transition-all duration-300 text-base backdrop-blur-sm group-hover:border-blue-300 dark:group-hover:border-blue-400 shadow-lg"
+                placeholder="🎤 Speak in any language (Hindi/Gujarati/Tamil/English etc.) - AI will auto-detect! OR type: Compress these images to 80% quality, Convert this Word document to PDF, Make a PDF from these photos, Extract all files from this zip archive, Replace 'IITM' with 'IIT Madras' in all files, Convert this audio to text in Hindi, Transcribe this speech in Gujarati, Convert text to speech in Tamil, Generate speech from this text..."
+                required
+              ></textarea>
+              
+              <!-- Microphone Button -->
+              <button
+                type="button"
+                id="microphoneBtn"
+                class="absolute right-4 top-4 z-10"
+                title="Click to speak in any language (Powered by Sarvam AI)"
+              >
+                <i id="micIcon" class="fas fa-microphone-slash text-white text-sm"></i>
+                <i id="micActiveIcon" class="fas fa-microphone text-white text-sm hidden"></i>
+              </button>
+              
+              <!-- Speech Status -->
+              <div
+                id="speechStatus"
+                class="absolute right-4 bottom-4 hidden z-20 bg-black/80 text-white px-3 py-1 rounded-full text-xs"
+              >
+                <i class="fas fa-circle text-xs mr-1 animate-pulse text-red-400"></i>
+                Listening...
+              </div>
+            </div>
+          </div>
+
+          <!-- File Upload -->
+          <div class="relative">
+            <label
+              for="files"
+              class="flex items-center space-x-2 text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4"
+            >
+              <i class="fas fa-cloud-upload-alt text-green-500"></i>
+              <span>Upload Files</span>
+            </label>
+            <div
+              class="border-3 border-dashed border-gray-300 dark:border-gray-600 rounded-3xl p-12 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 hover:bg-blue-50/50 dark:hover:bg-gray-700/30 backdrop-blur-sm group relative overflow-hidden"
+            >
+              <!-- Upload animation background -->
+              <div class="absolute inset-0 bg-gradient-to-r from-blue-400/5 via-purple-400/5 to-green-400/5 group-hover:from-blue-400/10 group-hover:via-purple-400/10 group-hover:to-green-400/10 transition-all duration-500"></div>
+              <div class="relative z-10">
+              <input
+                type="file"
+                id="files"
+                name="files"
+                multiple
+                class="hidden"
+                accept=".jpg,.jpeg,.png,.bmp,.tiff,.webp,.docx,.zip"
+              />              <label for="files" class="cursor-pointer block">
+                <div class="text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-all duration-300">
+                  <i class="fas fa-cloud-upload-alt text-6xl mb-6 group-hover:scale-110 transition-transform duration-300"></i>
+                  <h3 class="text-xl font-semibold mb-3">Drop files here or click to browse</h3>
+                  <p class="text-base text-gray-500 dark:text-gray-400 mb-4">
+                    Supports: Images, Word docs, Audio files, ZIP files and more
+                  </p>
+                  <div class="inline-flex items-center space-x-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-6 py-3 rounded-2xl text-sm font-medium group-hover:bg-blue-200 dark:group-hover:bg-blue-800/50 transition-all duration-300">
+                    <i class="fas fa-upload"></i>
+                    <span>Choose Files</span>
+                  </div>
+                </div>
+              </label>
+            </div>
+            <div id="fileList" class="mt-8 space-y-3"></div>
+          </div>          <!-- Submit Button -->
+          <div class="text-center pt-6">
+            <button
+              type="submit"
+              id="submitBtn"
+              class="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 dark:from-blue-700 dark:via-purple-700 dark:to-blue-800 text-white py-4 px-12 rounded-2xl hover:from-blue-700 hover:via-purple-700 hover:to-blue-800 dark:hover:from-blue-800 dark:hover:via-purple-800 dark:hover:to-blue-900 focus:outline-none focus:ring-4 focus:ring-blue-500/30 transition-all duration-300 font-semibold text-lg shadow-2xl hover:shadow-3xl transform hover:-translate-y-1 relative overflow-hidden group"
+            >
+              <!-- Button shine effect -->
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              <div class="relative flex items-center justify-center space-x-3">
+                <i class="fas fa-magic"></i>
+                <span id="submitText">Process Files</span>
+              </div>
+              <span id="loadingSpinner" class="hidden absolute inset-0 flex items-center justify-center space-x-2">
+                <i class="fas fa-spinner animate-spin"></i>
+                <span>Processing...</span>
+              </span>
+            </button>
+          </div>
+        </form>
+        </div>
+      </div>      <!-- Results Section -->
+      <div id="results" class="max-w-5xl mx-auto mb-20 hidden">
+        <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl p-10 border border-white/20 dark:border-gray-700/50 transition-all duration-300 relative overflow-hidden">
+          <!-- Decorative elements -->
+          <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-blue-500/20 rounded-full blur-3xl"></div>
+          <div class="relative z-10">
+            <div class="flex items-center space-x-3 mb-8">
+              <i class="fas fa-check-circle text-green-500 text-2xl"></i>
+              <h3 class="text-2xl font-bold text-gray-800 dark:text-gray-100">Results</h3>
+            </div>
+            <div id="resultContent" class="dark:text-gray-300 text-lg leading-relaxed"></div>
+          </div>
+        </div>
+      </div>      <!-- Features Section -->
+      <div class="max-w-7xl mx-auto mb-20 mt-32">
+        <div class="text-center mb-16">
+          <div class="inline-flex items-center space-x-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-6 py-3 rounded-full text-sm font-medium mb-6">
+            <i class="fas fa-tools"></i>
+            <span>AI-Powered Functions</span>
+          </div>
+          <h2 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-purple-900 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent mb-6 leading-tight">
+            Available Functions
+          </h2>
+          <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
+            Powerful AI-driven tools to process your files efficiently and professionally with cutting-edge automation
+          </p>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-10 mb-16"><div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl p-8 text-center transition-all duration-300 hover:-translate-y-1 border border-gray-100 dark:border-gray-700 group">
+            <div class="text-4xl mb-6 group-hover:scale-110 transition-transform duration-300">🖼️</div>
+            <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Image Compression</h3>
+            <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Reduce image file sizes while maintaining quality. Supports various formats and custom quality settings.
             </p>
-        </div>
-
-        <!-- Quick Language Selector -->
-        <div class="language-selector flex flex-wrap justify-center items-center gap-2 mb-6">
-            <span class="text-sm font-medium text-gray-600">Quick Language:</span>
-            <button onclick="changeLanguage('en')" class="lang-btn px-3 py-1 text-xs bg-white border border-gray-300 rounded-full hover:bg-blue-50 hover:border-blue-300 transition-colors">
-                🇺🇸 English
-            </button>
-            <button onclick="changeLanguage('hi')" class="lang-btn px-3 py-1 text-xs bg-white border border-gray-300 rounded-full hover:bg-blue-50 hover:border-blue-300 transition-colors">
-                🇮🇳 हिंदी
-            </button>
-            <button onclick="changeLanguage('gu')" class="lang-btn px-3 py-1 text-xs bg-white border border-gray-300 rounded-full hover:bg-blue-50 hover:border-blue-300 transition-colors">
-                🇮🇳 ગુજરાતી
-            </button>
-            <button onclick="changeLanguage('ta')" class="lang-btn px-3 py-1 text-xs bg-white border border-gray-300 rounded-full hover:bg-blue-50 hover:border-blue-300 transition-colors">
-                🇮🇳 தமிழ்
-            </button>
-            <button onclick="changeLanguage('te')" class="lang-btn px-3 py-1 text-xs bg-white border border-gray-300 rounded-full hover:bg-blue-50 hover:border-blue-300 transition-colors">
-                🇮🇳 తెలుగు
-            </button>
-            <button onclick="changeLanguage('bn')" class="lang-btn px-3 py-1 text-xs bg-white border border-gray-300 rounded-full hover:bg-blue-50 hover:border-blue-300 transition-colors">
-                🇮🇳 বাংলা
-            </button>
-            <button onclick="changeLanguage('mr')" class="lang-btn px-3 py-1 text-xs bg-white border border-gray-300 rounded-full hover:bg-blue-50 hover:border-blue-300 transition-colors">
-                🇮🇳 मराठी
-            </button>
-            <div class="text-xs text-gray-400 ml-2">
-                <span>Alt+L for more languages</span>
-            </div>
-        </div>
-
-        <!-- Main Form -->
-        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
-            <form id="processForm" enctype="multipart/form-data">                <!-- Prompt Input -->
-                <div class="mb-6">
-                    <label for="prompt" class="block text-sm font-medium text-gray-700 mb-2">
-                        What would you like to do?
-                    </label>
-                    <div class="relative">
-                        <textarea 
-                            id="prompt" 
-                            name="prompt" 
-                            rows="3" 
-                            class="w-full px-3 py-2 pr-12 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                            placeholder="🎤 Speak in any language (Hindi/Gujarati/Tamil/English etc.) - AI will auto-detect! OR type: Compress these images to 80% quality, Convert this Word document to PDF, Make a PDF from these photos, Extract all files from this zip archive, Replace 'IITM' with 'IIT Madras' in all files, Convert this audio to text in Hindi, Transcribe this speech in Gujarati, Convert text to speech in Tamil, Generate speech from this text..."
-                            required
-                        ></textarea>                        <button 
-                            type="button" 
-                            id="microphoneBtn" 
-                            class="absolute right-2 top-2 p-2 text-gray-400 hover:text-blue-500 focus:outline-none focus:text-blue-500 transition-colors"
-                            title="Click to speak in any language (Powered by Sarvam AI)"
-                        >
-                            <svg id="micIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-                            </svg>
-                            <svg id="micActiveIcon" class="w-5 h-5 hidden text-red-500" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
-                            </svg>
-                        </button>
-                        <div id="speechStatus" class="absolute right-2 top-12 text-xs text-gray-500 hidden">
-                            Listening...
-                        </div>
-                    </div>
-                </div>
-
-                <!-- File Upload -->
-                <div class="mb-6">
-                    <label for="files" class="block text-sm font-medium text-gray-700 mb-2">
-                        Upload Files
-                    </label>
-                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors">
-                        <input 
-                            type="file" 
-                            id="files" 
-                            name="files" 
-                            multiple 
-                            class="hidden"
-                            accept=".jpg,.jpeg,.png,.bmp,.tiff,.webp,.docx,.zip"
-                        >
-                        <label for="files" class="cursor-pointer">
-                            <div class="text-gray-500">
-                                <svg class="mx-auto h-12 w-12 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                                </svg>
-                                <p class="text-lg font-medium">Click to upload files</p>
-                                <p class="text-sm">or drag and drop</p>
-                                <p class="text-xs text-gray-400 mt-2">Supports: Images (JPG, PNG, etc.), Word documents (.docx), Audio files (WAV, MP3, M4A, FLAC, AAC), and ZIP files</p>
-                            </div>
-                        </label>
-                    </div>
-                    <div id="fileList" class="mt-3"></div>
-                </div>
-
-                <!-- Submit Button -->
-                <button 
-                    type="submit" 
-                    id="submitBtn"
-                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                >
-                    <span id="submitText">Process Files</span>
-                    <span id="loadingSpinner" class="hidden">
-                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Processing...
-                    </span>
-                </button>
-            </form>
-        </div>
-
-        <!-- Results Section -->
-        <div id="results" class="max-w-2xl mx-auto mt-8 hidden">
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">Results</h3>
-                <div id="resultContent"></div>
-            </div>
-        </div>
-
-        <!-- Features Section -->
-        <div class="max-w-4xl mx-auto mt-12">
-            <h2 class="text-2xl font-bold text-center text-gray-800 mb-8">Available Functions</h2>            <div class="grid md:grid-cols-7 gap-4">
-                <div class="bg-white rounded-lg shadow p-6 text-center">
-                    <div class="text-3xl mb-4">🖼️</div>
-                    <h3 class="text-lg font-semibold mb-2">Image Compression</h3>
-                    <p class="text-gray-600 text-sm">Reduce image file sizes while maintaining quality. Supports various formats and custom quality settings.</p>
-                </div>
-                <div class="bg-white rounded-lg shadow p-6 text-center">
-                    <div class="text-3xl mb-4">📄</div>
-                    <h3 class="text-lg font-semibold mb-2">Word to PDF</h3>
-                    <p class="text-gray-600 text-sm">Convert Word documents (.docx) to PDF format with customizable page settings.</p>
-                </div>
-                <div class="bg-white rounded-lg shadow p-6 text-center">
-                    <div class="text-3xl mb-4">📸</div>
-                    <h3 class="text-lg font-semibold mb-2">Image to PDF</h3>
-                    <p class="text-gray-600 text-sm">Combine multiple images into a single PDF document with proper sizing and layout.</p>
-                </div>
-                <div class="bg-white rounded-lg shadow p-6 text-center">
-                    <div class="text-3xl mb-4">📦</div>
-                    <h3 class="text-lg font-semibold mb-2">File Extraction</h3>
-                    <p class="text-gray-600 text-sm">Extract and analyze all types of files from ZIP archives with detailed file analysis and summaries.</p>
-                </div>
-                <div class="bg-white rounded-lg shadow p-6 text-center">
-                    <div class="text-3xl mb-4">🔄</div>
-                    <h3 class="text-lg font-semibold mb-2">Text Replacement</h3>
-                    <p class="text-gray-600 text-sm">Find and replace text in all files within ZIP archives. Case-sensitive or insensitive.</p>
-                </div>
-                <div class="bg-white rounded-lg shadow p-6 text-center">
-                    <div class="text-3xl mb-4">🎤</div>
-                    <h3 class="text-lg font-semibold mb-2">Speech to Text</h3>
-                    <p class="text-gray-600 text-sm">Convert audio files to text using Sarvam AI. Supports 12+ Indian languages and multiple audio formats.</p>
-                </div>
-                <div class="bg-white rounded-lg shadow p-6 text-center">
-                    <div class="text-3xl mb-4">🔊</div>
-                    <h3 class="text-lg font-semibold mb-2">Text to Speech</h3>
-                    <p class="text-gray-600 text-sm">Convert text to speech audio using Sarvam AI. Generate natural-sounding voice in multiple Indian languages.</p>
-                </div>
-            </div>
-        </div>
+          </div>
+          <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl p-8 text-center transition-all duration-300 hover:-translate-y-1 border border-gray-100 dark:border-gray-700 group">
+            <div class="text-4xl mb-6 group-hover:scale-110 transition-transform duration-300">📄</div>
+            <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Word to PDF</h3>
+            <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Convert Word documents (.docx) to PDF format with customizable page settings and professional output.
+            </p>
+          </div>
+          <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl p-8 text-center transition-all duration-300 hover:-translate-y-1 border border-gray-100 dark:border-gray-700 group">
+            <div class="text-4xl mb-6 group-hover:scale-110 transition-transform duration-300">📸</div>
+            <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Image to PDF</h3>
+            <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Combine multiple images into a single PDF document with proper sizing and professional layout.
+            </p>
+          </div>
+          <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl p-8 text-center transition-all duration-300 hover:-translate-y-1 border border-gray-100 dark:border-gray-700 group">
+            <div class="text-4xl mb-6 group-hover:scale-110 transition-transform duration-300">📦</div>
+            <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">File Extraction</h3>
+            <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Extract and analyze all types of files from ZIP archives with detailed analysis and summaries.
+            </p>
+          </div>
+          <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl p-8 text-center transition-all duration-300 hover:-translate-y-1 border border-gray-100 dark:border-gray-700 group">
+            <div class="text-4xl mb-6 group-hover:scale-110 transition-transform duration-300">🎤</div>
+            <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Speech to Text</h3>
+            <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Convert audio files to text using AI. Supports 12+ Indian languages and multiple audio formats.
+            </p>
+          </div>
+          <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl p-8 text-center transition-all duration-300 hover:-translate-y-1 border border-gray-100 dark:border-gray-700 group">
+            <div class="text-4xl mb-6 group-hover:scale-110 transition-transform duration-300">🔊</div>
+            <h3 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">Text to Speech</h3>
+            <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
+              Convert text to natural-sounding speech audio using AI in multiple Indian languages.
+            </p>
+          </div>        </div>
+      </div>
+      </div>
     </div>
 
     <script src="/static/script.js"></script>
-</body>
+  </body>
 </html>
