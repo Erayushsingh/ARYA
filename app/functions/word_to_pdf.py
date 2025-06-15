@@ -6,6 +6,7 @@ from reportlab.lib.units import inch
 import os
 import uuid
 from typing import Dict, Any, List
+from app.config import Config
 
 class WordToPdfConverter:
     def __init__(self):
@@ -39,11 +40,10 @@ class WordToPdfConverter:
             try:
                 # Read Word document
                 doc = Document(file_path)
-                
-                # Generate output filename
+                  # Generate output filename
                 original_name = os.path.splitext(os.path.basename(file_path))[0]
                 output_filename = f"{original_name}_converted_{uuid.uuid4().hex[:8]}.pdf"
-                output_path = os.path.join("app/file_handler/outputs", output_filename)
+                output_path = os.path.join(Config.OUTPUT_DIR, output_filename)
                 
                 # Set up PDF document
                 page_size_tuple = self.page_sizes[page_size]

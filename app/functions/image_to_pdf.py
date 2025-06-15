@@ -5,6 +5,7 @@ from reportlab.lib.units import inch
 import os
 import uuid
 from typing import Dict, Any, List
+from app.config import Config
 
 class ImageToPdfConverter:
     def __init__(self):
@@ -30,15 +31,14 @@ class ImageToPdfConverter:
             page_size = 'A4'
         
         # Filter image files
-        image_files = [f for f in file_paths if self._is_image_file(f)]
-        
+        image_files = [f for f in file_paths if self._is_image_file(f)]        
         if not image_files:
             raise ValueError("No valid image files found for conversion")
         
         try:
             # Generate output filename
             output_filename = f"images_to_pdf_{uuid.uuid4().hex[:8]}.pdf"
-            output_path = os.path.join("app/file_handler/outputs", output_filename)
+            output_path = os.path.join(Config.OUTPUT_DIR, output_filename)
             
             # Set up PDF document
             page_size_tuple = self.page_sizes[page_size]
@@ -65,8 +65,7 @@ class ImageToPdfConverter:
                     # Open image to get dimensions
                     with Image.open(image_path) as img:
                         img_width, img_height = img.size
-                        
-                        # Calculate scaling to fit page
+                          # Calculate scaling to fit page
                         width_ratio = page_width / img_width
                         height_ratio = page_height / img_height
                         scale_ratio = min(width_ratio, height_ratio, 1.0)  # Don't upscale
@@ -79,19 +78,34 @@ class ImageToPdfConverter:
                         if img.mode in ('RGBA', 'P'):
                             # Create a temporary RGB image
                             temp_path = f"temp_{uuid.uuid4().hex[:8]}.jpg"
-                            temp_full_path = os.path.join("app/file_handler/outputs", temp_path)
+                            temp_full_path = os.path.join(Config.OUTPUT_DIR, temp_path)
+                            print(f"Creating temp file at: {temp_full_path}")
+                              # Ensure the output directory exists
+                            os.makedirs(Config.OUTPUT_DIR, exist_ok=True)
+                            
                             rgb_img = img.convert('RGB')
                             rgb_img.save(temp_full_path, 'JPEG', quality=95)
+                              # Verify the file was created
+                            if not os.path.exists(temp_full_path):
+                                raise FileNotFoundError(f"Failed to create temp file: {temp_full_path}")
                             
-                            # Add to PDF
-                            rl_image = RLImage(temp_full_path, width=final_width, height=final_height)
+                            print(f"Temp file created successfully: {temp_full_path}")
+                            
+                            # Add to PDF - use absolute path with forward slashes for ReportLab compatibility
+                            temp_absolute_path = os.path.abspath(temp_full_path)
+                            rl_path = temp_absolute_path.replace('\\', '/')
+                            print(f"ReportLab path: {rl_path}")
+                            rl_image = RLImage(rl_path, width=final_width, height=final_height)
                             story.append(rl_image)
                             
                             # Clean up temp file
                             os.remove(temp_full_path)
                         else:
-                            # Add image directly to PDF
-                            rl_image = RLImage(image_path, width=final_width, height=final_height)
+                            # Add image directly to PDF - use absolute path with forward slashes for ReportLab compatibility
+                            image_absolute_path = os.path.abspath(image_path)
+                            rl_path = image_absolute_path.replace('\\', '/')
+                            print(f"Direct image ReportLab path: {rl_path}")
+                            rl_image = RLImage(rl_path, width=final_width, height=final_height)
                             story.append(rl_image)
                     
                     # Add page break between images (except for the last one)
