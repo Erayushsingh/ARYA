@@ -151,8 +151,7 @@ User prompt: "{prompt}"
                     parameters={"page_size": "A4", "orientation": "portrait"},
                     confidence=0.7
                 )
-            elif any(trigger in prompt_lower for trigger in self.available_functions["image_to_pdf"]["triggers"]):
-                return FunctionCall(
+            elif any(trigger in prompt_lower for trigger in self.available_functions["image_to_pdf"]["triggers"]):                return FunctionCall(
                     function_name="image_to_pdf",
                     parameters={"page_size": "A4", "orientation": "portrait"},
                     confidence=0.7
@@ -167,7 +166,8 @@ User prompt: "{prompt}"
                 # Try to extract keywords from prompt
                 old_keyword = "IITM"  # default
                 new_keyword = "IIT Madras"  # default
-                  # Simple pattern matching for replacement
+                
+                # Simple pattern matching for replacement
                 replace_patterns = [
                     r'replace["\s]+([^"]+)["\s]+with["\s]+([^"]+)',
                     r'change["\s]+([^"]+)["\s]+to["\s]+([^"]+)',
@@ -184,8 +184,8 @@ User prompt: "{prompt}"
                 return FunctionCall(
                     function_name="replace_text",
                     parameters={
-                        "old_keyword": old_keyword,
-                        "new_keyword": new_keyword,
+                        "find_text": old_keyword,
+                        "replace_text": new_keyword,
                         "case_sensitive": False
                     },
                     confidence=0.7

@@ -58,17 +58,17 @@ class TextToSpeechConverter:
                 summary_path = os.path.join(Config.OUTPUT_DIR, summary_filename)
                 
                 with open(summary_path, 'w', encoding='utf-8') as f:
-                    f.write("Text-to-Speech Conversion Summary\\n")
-                    f.write("=================================\\n\\n")
-                    f.write(f"Language: {result['language']} ({result['language_code']})\\n")
-                    f.write(f"Output Format: {output_format}\\n")
-                    f.write(f"Audio File: {output_filename}\\n")
-                    f.write(f"Text Length: {len(text_to_convert)} characters\\n\\n")
-                    f.write("Original Text:\\n")
-                    f.write("-" * 50 + "\\n")
+                    f.write("Text-to-Speech Conversion Summary\n")
+                    f.write("=================================\n\n")
+                    f.write(f"Language: {result['language']} ({result['language_code']})\n")
+                    f.write(f"Output Format: {output_format}\n")
+                    f.write(f"Audio File: {output_filename}\n")
+                    f.write(f"Text Length: {len(text_to_convert)} characters\n\n")
+                    f.write("Original Text:\n")
+                    f.write("-" * 50 + "\n")
                     f.write(text_to_convert)
-                    f.write("\\n" + "-" * 50 + "\\n")
-                    f.write("\\n✅ Conversion completed successfully!")
+                    f.write("\n" + "-" * 50 + "\n")
+                    f.write("\n✅ Conversion completed successfully!")
                 
                 return {
                     "success": True,
@@ -98,20 +98,20 @@ class TextToSpeechConverter:
                 if file_ext in ['.txt', '.md', '.py', '.js', '.html', '.css', '.json', '.xml']:
                     with open(file_path, 'r', encoding='utf-8') as f:
                         content = f.read()
-                        extracted_text.append(f"Content from {os.path.basename(file_path)}:\\n{content}\\n")
+                        extracted_text.append(f"Content from {os.path.basename(file_path)}:\n{content}\n")
                 elif file_ext == '.docx':
                     # Try to extract from docx if python-docx is available
                     try:
                         from docx import Document
                         doc = Document(file_path)
-                        content = '\\n'.join([paragraph.text for paragraph in doc.paragraphs])
-                        extracted_text.append(f"Content from {os.path.basename(file_path)}:\\n{content}\\n")
+                        content = '\n'.join([paragraph.text for paragraph in doc.paragraphs])
+                        extracted_text.append(f"Content from {os.path.basename(file_path)}:\n{content}\n")
                     except ImportError:
                         print(f"Warning: Cannot extract text from {file_path} - python-docx not available")
             except Exception as e:
                 print(f"Warning: Could not extract text from {file_path}: {str(e)}")
         
-        return '\\n\\n'.join(extracted_text)
+        return '\n\n'.join(extracted_text)
     
     def get_supported_languages(self) -> Dict[str, str]:
         """Get supported languages"""
