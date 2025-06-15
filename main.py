@@ -218,8 +218,12 @@ async def sarvam_speech_to_text(
         }
 
 if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", Config.PORT))
+    host = os.environ.get("HOST", Config.HOST)
+    
     print("🚀 Starting PROAGENT FastAPI Server...")
-    print(f"🌐 Server will be available at: http://{Config.HOST}:{Config.PORT}")
+    print(f"🌐 Server will be available at: http://{host}:{port}")
     print("🎤 Features available:")
     print("  • Multilingual speech-to-text with Sarvam AI")
     print("  • Google Translate integration")
@@ -228,4 +232,4 @@ if __name__ == "__main__":
     print("✅ Press Ctrl+C to stop the server")
     print("-" * 60)
     
-    uvicorn.run("main:app", host=Config.HOST, port=Config.PORT, reload=Config.DEBUG)
+    uvicorn.run("main:app", host=host, port=port, reload=False)
