@@ -59,26 +59,25 @@ class SpeechToTextConverter:
             # Create output text file with all transcriptions
             output_filename = f"speech_to_text_{uuid.uuid4().hex[:8]}.txt"
             output_path = os.path.join(Config.OUTPUT_DIR, output_filename)
-            
-            # Ensure output directory exists
+              # Ensure output directory exists
             os.makedirs(Config.OUTPUT_DIR, exist_ok=True)
             
             with open(output_path, 'w', encoding='utf-8') as f:
-                f.write("Speech-to-Text Transcription Results\\n")
-                f.write("=====================================\\n\\n")
-                f.write(f"Language: {language}\\n")
-                f.write(f"Model: {model}\\n")
-                f.write(f"Total files processed: {len(audio_files)}\\n\\n")
+                f.write("Speech-to-Text Transcription Results\n")
+                f.write("=====================================\n\n")
+                f.write(f"Language: {language}\n")
+                f.write(f"Model: {model}\n")
+                f.write(f"Total files processed: {len(audio_files)}\n\n")
                 
                 for result in results:
-                    f.write(f"File: {result['file']}\\n")
+                    f.write(f"File: {result['file']}\n")
                     if result['success']:
-                        f.write(f"Status: ✅ Success\\n")
-                        f.write(f"Transcript: {result['transcribed_text']}\\n")
+                        f.write(f"Status: ✅ Success\n")
+                        f.write(f"Transcript: {result['transcribed_text']}\n")
                     else:
-                        f.write(f"Status: ❌ Failed\\n")
-                        f.write(f"Error: {result['error']}\\n")
-                    f.write("\\n" + "="*50 + "\\n\\n")
+                        f.write(f"Status: ❌ Failed\n")
+                        f.write(f"Error: {result['error']}\n")
+                    f.write("\n" + "="*50 + "\n\n")
             
             # Count successful conversions
             successful_count = sum(1 for r in results if r['success'])

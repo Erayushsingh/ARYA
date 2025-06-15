@@ -106,9 +106,26 @@ async def process_request(
 @app.get("/download/{file_path:path}")
 async def download_file(file_path: str):
     """Download processed file"""
-    full_path = os.path.join("app/file_handler/outputs", file_path)
+    # Handle both full paths and relative paths
+    if file_path.startswith("app/file_handler/outputs") or file_path.startswith("app\\file_handler\\outputs"):
+        # Full path already provided
+        full_path = file_path.replace("\\", "/")  # Normalize path separators
+    else:
+        # Relative path, add the base directory
+        full_path = os.path.join("app/file_handler/outputs", file_path)
+    
+    # Normalize the path and check if file exists
+    full_path = os.path.normpath(full_path)
+    
     if not os.path.exists(full_path):
-        raise HTTPException(status_code=404, detail="File not found")
+        # Try alternative path formats
+        alt_path = os.path.join("app", "file_handler", "outputs", os.path.basename(file_path))
+        if os.path.exists(alt_path):
+            full_path = alt_path
+        else:
+            print(f"File not found at: {full_path}")
+            print(f"Also tried: {alt_path}")
+            raise HTTPException(status_code=404, detail=f"File not found: {os.path.basename(file_path)}")
     
     filename = os.path.basename(full_path)
     return FileResponse(
@@ -218,8 +235,12 @@ async def sarvam_speech_to_text(
         }
 
 if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", Config.PORT))
+    host = os.environ.get("HOST", Config.HOST)
+    
     print("🚀 Starting PROAGENT FastAPI Server...")
-    print(f"🌐 Server will be available at: http://{Config.HOST}:{Config.PORT}")
+    print(f"🌐 Server will be available at: http://{host}:{port}")
     print("🎤 Features available:")
     print("  • Multilingual speech-to-text with Sarvam AI")
     print("  • Google Translate integration")
@@ -228,4 +249,4 @@ if __name__ == "__main__":
     print("✅ Press Ctrl+C to stop the server")
     print("-" * 60)
     
-    uvicorn.run("main:app", host=Config.HOST, port=Config.PORT, reload=Config.DEBUG)
+    uvicorn.run("main:app", host=host, port=port, reload=False)
