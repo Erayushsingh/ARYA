@@ -26,8 +26,7 @@ class WordToPdfConverter:
         page_size = parameters.get('page_size', 'A4').upper()
         orientation = parameters.get('orientation', 'portrait').lower()
         margin = parameters.get('margin', 50)
-        
-        # Validate page size
+          # Validate page size
         if page_size not in self.page_sizes:
             page_size = 'A4'
         
@@ -40,7 +39,8 @@ class WordToPdfConverter:
             try:
                 # Read Word document
                 doc = Document(file_path)
-                  # Generate output filename
+                
+                # Generate output filename
                 original_name = os.path.splitext(os.path.basename(file_path))[0]
                 output_filename = f"{original_name}_converted_{uuid.uuid4().hex[:8]}.pdf"
                 output_path = os.path.join(Config.OUTPUT_DIR, output_filename)

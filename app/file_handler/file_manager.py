@@ -3,11 +3,12 @@ import os
 import uuid
 from fastapi import UploadFile
 from typing import List
+from app.config import Config
 
 class FileManager:
     def __init__(self):
-        self.upload_dir = "app/file_handler/uploads"
-        self.output_dir = "app/file_handler/outputs"
+        self.upload_dir = Config.UPLOAD_DIR
+        self.output_dir = Config.OUTPUT_DIR
         
         # Create directories if they don't exist
         os.makedirs(self.upload_dir, exist_ok=True)

@@ -22,7 +22,7 @@ class Config:
     DEFAULT_ORIENTATION = os.getenv('DEFAULT_ORIENTATION', 'portrait')
       # Cleanup Settings
     CLEANUP_INTERVAL_HOURS = int(os.getenv('CLEANUP_INTERVAL_HOURS', 24))
-    
-    # File paths - using os.path.join for cross-platform compatibility
-    UPLOAD_DIR = os.path.join("app", "file_handler", "uploads")
-    OUTPUT_DIR = os.path.join("app", "file_handler", "outputs")
+      # File paths - using absolute paths for reliability
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    UPLOAD_DIR = os.path.join(BASE_DIR, "app", "file_handler", "uploads")
+    OUTPUT_DIR = os.path.join(BASE_DIR, "app", "file_handler", "outputs")
