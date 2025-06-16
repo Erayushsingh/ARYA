@@ -8,6 +8,9 @@ import os
 import time
 import asyncio
 import logging
+import httpx
+import aiofiles
+from datetime import datetime, timedelta
 from typing import Optional
 from contextlib import asynccontextmanager
 
@@ -19,62 +22,202 @@ from app.models.schemas import FunctionCallRequest, FunctionCallResponse
 from app.config import Config
 
 # Setup logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
-# Global variables for keep-alive
+# Global variables for keep-alive and monitoring
 keep_alive_task = None
+last_activity = time.time()
+keep_alive_stats = {
+    "pings_sent": 0,
+    "successful_pings": 0,
+    "failed_pings": 0,
+    "last_ping": None,
+    "last_error": None,
+    "uptime_start": time.time()
+}
 
-async def keep_alive_ping():
-    """Background task to keep the server alive and prevent cold starts"""
+async def enhanced_keep_alive():
+    """Enhanced keep-alive system with retry logic and error handling"""
+    global keep_alive_stats, last_activity
+    
+    # Configuration
+    PING_INTERVAL = 300  # 5 minutes
+    MAX_RETRIES = 3
+    RETRY_DELAY = 30  # 30 seconds between retries
+    
+    logger.info("🚀 Enhanced keep-alive system started")
+    
     while True:
         try:
-            # Log every 10 minutes to show the server is alive
-            logger.info("🏃 Keep-alive ping - Server is active")
-            await asyncio.sleep(600)  # Wait 10 minutes
+            # Internal ping (lightweight)
+            start_time = time.time()
+            
+            # Update stats
+            keep_alive_stats["pings_sent"] += 1
+            keep_alive_stats["last_ping"] = datetime.now().isoformat()
+            
+            # Simple internal health check
+            try:
+                # Check if all components are still responsive
+                test_data = {
+                    "gemini_available": bool(Config.GOOGLE_GEMINI_KEY),
+                    "sarvam_available": bool(Config.SARVAM_API_KEY),
+                    "uptime": time.time() - keep_alive_stats["uptime_start"],
+                    "last_activity": time.time() - last_activity
+                }
+                
+                keep_alive_stats["successful_pings"] += 1
+                ping_duration = time.time() - start_time
+                
+                logger.info(f"✅ Keep-alive ping #{keep_alive_stats['pings_sent']} successful")
+                logger.info(f"   📊 Uptime: {test_data['uptime']:.0f}s | Last activity: {test_data['last_activity']:.0f}s ago")
+                logger.info(f"   ⚡ Ping duration: {ping_duration:.3f}s")
+                
+            except Exception as ping_error:
+                keep_alive_stats["failed_pings"] += 1
+                keep_alive_stats["last_error"] = str(ping_error)
+                logger.warning(f"⚠️ Internal ping failed: {ping_error}")
+            
+            # Sleep for the configured interval
+            await asyncio.sleep(PING_INTERVAL)
+            
+        except asyncio.CancelledError:
+            logger.info("🛑 Keep-alive task cancelled")
+            break
         except Exception as e:
-            logger.error(f"Keep-alive ping error: {e}")
-            await asyncio.sleep(60)  # Wait 1 minute on error
+            keep_alive_stats["failed_pings"] += 1
+            keep_alive_stats["last_error"] = str(e)
+            logger.error(f"❌ Keep-alive system error: {e}")
+            
+            # Retry logic with exponential backoff
+            for retry in range(MAX_RETRIES):
+                try:
+                    await asyncio.sleep(RETRY_DELAY * (2 ** retry))
+                    logger.info(f"🔄 Keep-alive retry {retry + 1}/{MAX_RETRIES}")
+                    break
+                except Exception:
+                    if retry == MAX_RETRIES - 1:
+                        logger.error("💥 Keep-alive system failed permanently, restarting...")
+                        await asyncio.sleep(60)  # Wait 1 minute before restarting loop
+                        break
+
+async def external_ping_endpoints():
+    """Make external HTTP requests to keep the server warm"""
+    while True:
+        try:
+            # Wait 15 minutes between external pings
+            await asyncio.sleep(900)
+            
+            # Get the current URL (for Render, this would be your app URL)
+            base_url = os.environ.get("RENDER_EXTERNAL_URL", "http://localhost:8000")
+            
+            if base_url != "http://localhost:8000":  # Only ping externally if deployed
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    endpoints_to_ping = [
+                        f"{base_url}/health",
+                        f"{base_url}/ping",
+                        f"{base_url}/warmup"
+                    ]
+                    
+                    for endpoint in endpoints_to_ping:
+                        try:
+                            response = await client.get(endpoint)
+                            if response.status_code == 200:
+                                logger.info(f"🌐 External ping successful: {endpoint}")
+                            else:
+                                logger.warning(f"⚠️ External ping returned {response.status_code}: {endpoint}")
+                        except Exception as e:
+                            logger.warning(f"⚠️ External ping failed for {endpoint}: {e}")
+                        
+                        # Small delay between requests
+                        await asyncio.sleep(2)
+            
+        except Exception as e:
+            logger.error(f"❌ External ping system error: {e}")
+            await asyncio.sleep(300)  # Wait 5 minutes on error
+
+async def update_activity():
+    """Update last activity timestamp"""
+    global last_activity
+    last_activity = time.time()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Manage application lifespan"""
+    """Manage application lifespan with enhanced monitoring"""
     # Startup
     logger.info("🚀 ARYA Server Starting Up...")
-    global keep_alive_task
-    keep_alive_task = asyncio.create_task(keep_alive_ping())
-    logger.info("✅ Keep-alive task started")
+    logger.info("=" * 60)
     
-    # Test all services
+    global keep_alive_task
+    
+    # Start both keep-alive tasks
+    internal_task = asyncio.create_task(enhanced_keep_alive())
+    external_task = asyncio.create_task(external_ping_endpoints())
+    
+    keep_alive_task = asyncio.gather(internal_task, external_task, return_exceptions=True)
+    logger.info("✅ Enhanced keep-alive system started (internal + external)")
+    
+    # Test all services during startup
     try:
+        logger.info("🔧 Initializing services...")
+        
         # Test configuration
-        logger.info(f"🔑 Config loaded - API key available: {bool(Config.GOOGLE_GEMINI_KEY)}")
+        logger.info(f"🔑 Config loaded - Gemini API: {bool(Config.GOOGLE_GEMINI_KEY)}")
+        logger.info(f"🔑 Config loaded - Sarvam API: {bool(Config.SARVAM_API_KEY)}")
         
         # Initialize clients
         gemini_client = GeminiClient()
         sarvam_client = SarvamClient()
         logger.info("🤖 AI clients initialized successfully")
-          # Test function registry
+        
+        # Test function registry
         function_registry = FunctionRegistry()
         available_functions = function_registry.get_available_functions()
         logger.info(f"🛠️ Available functions: {available_functions}")
         
+        # Initialize file manager
+        file_manager = FileManager()
+        logger.info("📁 File manager initialized")
+        
         logger.info("✅ All services initialized successfully")
+        logger.info("🌡️ Server warm-up completed")
+        logger.info("🚀 ARYA is ready to serve requests!")
+        logger.info("=" * 60)
+        
+        # Update activity timestamp
+        await update_activity()
         
     except Exception as e:
         logger.error(f"❌ Startup error: {e}")
+        logger.error("🔧 Some services may not work correctly")
     
     yield
     
     # Shutdown
+    logger.info("=" * 60)
     logger.info("🛑 ARYA Server Shutting Down...")
+    
+    # Print final statistics
+    logger.info("📊 Keep-alive Statistics:")
+    logger.info(f"   • Total pings: {keep_alive_stats['pings_sent']}")
+    logger.info(f"   • Successful: {keep_alive_stats['successful_pings']}")
+    logger.info(f"   • Failed: {keep_alive_stats['failed_pings']}")
+    logger.info(f"   • Success rate: {(keep_alive_stats['successful_pings']/max(keep_alive_stats['pings_sent'], 1)*100):.1f}%")
+    logger.info(f"   • Total uptime: {(time.time() - keep_alive_stats['uptime_start']):.0f} seconds")
+    
     if keep_alive_task:
         keep_alive_task.cancel()
         try:
             await keep_alive_task
         except asyncio.CancelledError:
-            logger.info("🔄 Keep-alive task cancelled")
+            logger.info("🔄 Keep-alive tasks cancelled")
+    
     logger.info("👋 Shutdown complete")
+    logger.info("=" * 60)
 
 app = FastAPI(
     title="ARYA - AI File Processing Suite", 
@@ -96,6 +239,7 @@ sarvam_client = SarvamClient()
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     """Main interface for the application"""
+    await update_activity()
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/favicon.ico")
@@ -105,37 +249,76 @@ async def favicon():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint for monitoring services"""
+    """Enhanced health check endpoint with detailed monitoring"""
+    await update_activity()
+    
     try:
-        # Check if all components are working
+        start_time = time.time()
+        current_time = time.time()
+        
+        # Comprehensive system status
         status = {
             "status": "healthy",
-            "timestamp": time.time(),
-            "uptime": time.time(),
+            "timestamp": current_time,
+            "uptime_seconds": current_time - keep_alive_stats["uptime_start"],
+            "last_activity": current_time - last_activity,
+            "version": "1.2.0",
+            "environment": os.environ.get("ENVIRONMENT", "production"),
             "services": {
                 "api": "running",
                 "file_manager": "active",
-                "ai_clients": "connected"
+                "ai_clients": "connected",
+                "keep_alive": "active"
             },
             "functions_available": len(function_registry.get_available_functions()),
-            "version": "1.2.0"
+            "keep_alive_stats": keep_alive_stats.copy(),
+            "memory_usage": "N/A",  # Can be enhanced with psutil if needed
+            "disk_space": "N/A"     # Can be enhanced with shutil.disk_usage if needed
         }
         
-        # Test Gemini client connection
+        # Test AI client connections
         try:
-            # Quick test without actual API call
             gemini_status = "connected" if Config.GOOGLE_GEMINI_KEY else "no_api_key"
             status["services"]["gemini"] = gemini_status
-        except:
-            status["services"]["gemini"] = "error"
+        except Exception as e:
+            status["services"]["gemini"] = f"error: {str(e)[:50]}"
         
-        # Test Sarvam client connection
         try:
             sarvam_status = "connected" if Config.SARVAM_API_KEY else "no_api_key"
             status["services"]["sarvam"] = sarvam_status
-        except:
-            status["services"]["sarvam"] = "error"
+        except Exception as e:
+            status["services"]["sarvam"] = f"error: {str(e)[:50]}"
+        
+        # Test file system
+        try:
+            uploads_dir = Config.UPLOAD_DIR
+            outputs_dir = "app/file_handler/outputs"
             
+            upload_files = len(os.listdir(uploads_dir)) if os.path.exists(uploads_dir) else 0
+            output_files = len(os.listdir(outputs_dir)) if os.path.exists(outputs_dir) else 0
+            
+            status["file_system"] = {
+                "uploads_count": upload_files,
+                "outputs_count": output_files,
+                "uploads_dir_exists": os.path.exists(uploads_dir),
+                "outputs_dir_exists": os.path.exists(outputs_dir)
+            }
+        except Exception as e:
+            status["file_system"] = {"error": str(e)}
+        
+        # Calculate response time
+        response_time = time.time() - start_time
+        status["response_time_ms"] = round(response_time * 1000, 2)
+        
+        # Determine overall health status
+        if response_time > 5.0:  # Slow response
+            status["status"] = "degraded"
+            status["warning"] = "Slow response time"
+        
+        if keep_alive_stats["failed_pings"] > keep_alive_stats["successful_pings"]:
+            status["status"] = "degraded" 
+            status["warning"] = "High keep-alive failure rate"
+        
         return JSONResponse(content=status, status_code=200)
         
     except Exception as e:
@@ -144,64 +327,162 @@ async def health_check():
             content={
                 "status": "unhealthy",
                 "error": str(e),
-                "timestamp": time.time()
+                "timestamp": time.time(),
+                "uptime_seconds": time.time() - keep_alive_stats["uptime_start"] if keep_alive_stats else 0
             },
             status_code=503
         )
 
 @app.get("/ping")
 async def ping():
-    """Simple ping endpoint for uptime monitoring"""
-    return {"message": "pong", "timestamp": time.time()}
+    """Enhanced ping endpoint with activity tracking"""
+    await update_activity()
+    
+    return {
+        "message": "pong",
+        "timestamp": time.time(),
+        "uptime": time.time() - keep_alive_stats["uptime_start"],
+        "version": "1.2.0",
+        "status": "active"
+    }
+
+@app.get("/keep-alive-stats")
+async def get_keep_alive_stats():
+    """Get detailed keep-alive statistics"""
+    await update_activity()
+    
+    current_time = time.time()
+    uptime = current_time - keep_alive_stats["uptime_start"]
+    
+    stats = keep_alive_stats.copy()
+    stats.update({
+        "current_timestamp": current_time,
+        "uptime_seconds": uptime,
+        "uptime_formatted": f"{uptime//3600:.0f}h {(uptime%3600)//60:.0f}m {uptime%60:.0f}s",
+        "last_activity_seconds_ago": current_time - last_activity,
+        "success_rate_percent": (stats["successful_pings"] / max(stats["pings_sent"], 1)) * 100,
+        "avg_ping_interval": uptime / max(stats["pings_sent"], 1) if stats["pings_sent"] > 0 else 0
+    })
+    
+    return stats
 
 @app.get("/warmup")
 async def warmup():
-    """Warmup endpoint to initialize all services"""
+    """Enhanced warmup endpoint to initialize all services and prevent cold starts"""
+    await update_activity()
+    
     try:
         start_time = time.time()
+        logger.info("🔥 Warmup endpoint called - initializing all services")
         
-        # Initialize all components
+        # Initialize all components with detailed reporting
         results = {
             "gemini_client": "initializing",
             "sarvam_client": "initializing", 
             "function_registry": "initializing",
-            "file_manager": "initializing"
+            "file_manager": "initializing",
+            "file_system": "checking"
         }
         
-        # Test each component
+        initialization_details = {}
+        
+        # Test Gemini client
         try:
+            client_start = time.time()
             gemini_client = GeminiClient()
+            init_time = time.time() - client_start
             results["gemini_client"] = "ready"
+            initialization_details["gemini_init_time"] = round(init_time, 3)
         except Exception as e:
-            results["gemini_client"] = f"error: {str(e)}"
+            results["gemini_client"] = f"error: {str(e)[:100]}"
+            initialization_details["gemini_error"] = str(e)
         
+        # Test Sarvam client
         try:
+            client_start = time.time()
             sarvam_client = SarvamClient()
+            init_time = time.time() - client_start
             results["sarvam_client"] = "ready"
+            initialization_details["sarvam_init_time"] = round(init_time, 3)
         except Exception as e:
-            results["sarvam_client"] = f"error: {str(e)}"
+            results["sarvam_client"] = f"error: {str(e)[:100]}"
+            initialization_details["sarvam_error"] = str(e)
         
+        # Test function registry
         try:
+            registry_start = time.time()
             function_registry = FunctionRegistry()
             available_functions = function_registry.get_available_functions()
+            init_time = time.time() - registry_start
             results["function_registry"] = f"ready ({len(available_functions)} functions)"
+            initialization_details["registry_init_time"] = round(init_time, 3)
+            initialization_details["available_functions"] = available_functions
         except Exception as e:
-            results["function_registry"] = f"error: {str(e)}"
+            results["function_registry"] = f"error: {str(e)[:100]}"
+            initialization_details["registry_error"] = str(e)
         
+        # Test file manager
         try:
+            fm_start = time.time()
             file_manager = FileManager()
+            init_time = time.time() - fm_start
             results["file_manager"] = "ready"
+            initialization_details["file_manager_init_time"] = round(init_time, 3)
         except Exception as e:
-            results["file_manager"] = f"error: {str(e)}"
+            results["file_manager"] = f"error: {str(e)[:100]}"
+            initialization_details["file_manager_error"] = str(e)
+        
+        # Test file system
+        try:
+            uploads_dir = Config.UPLOAD_DIR
+            outputs_dir = "app/file_handler/outputs"
+            
+            # Ensure directories exist
+            os.makedirs(uploads_dir, exist_ok=True)
+            os.makedirs(outputs_dir, exist_ok=True)
+            
+            # Count files
+            upload_count = len(os.listdir(uploads_dir))
+            output_count = len(os.listdir(outputs_dir))
+            
+            results["file_system"] = f"ready (uploads: {upload_count}, outputs: {output_count})"
+            initialization_details["file_system"] = {
+                "uploads_dir": uploads_dir,
+                "outputs_dir": outputs_dir,
+                "upload_files": upload_count,
+                "output_files": output_count
+            }
+        except Exception as e:
+            results["file_system"] = f"error: {str(e)[:100]}"
+            initialization_details["file_system_error"] = str(e)
         
         warmup_time = time.time() - start_time
         
-        return {
+        # Comprehensive warmup response
+        response = {
             "status": "warmed_up",
-            "warmup_time_seconds": round(warmup_time, 2),
+            "warmup_time_seconds": round(warmup_time, 3),
+            "timestamp": time.time(),
             "components": results,
-            "timestamp": time.time()
+            "initialization_details": initialization_details,
+            "keep_alive_stats": keep_alive_stats.copy(),
+            "system_info": {
+                "uptime": time.time() - keep_alive_stats["uptime_start"],
+                "last_activity": time.time() - last_activity,
+                "environment": os.environ.get("ENVIRONMENT", "production"),
+                "python_version": os.sys.version.split()[0] if hasattr(os, 'sys') else "unknown"
+            }
         }
+        
+        # Determine if warmup was successful
+        error_count = sum(1 for result in results.values() if "error" in result)
+        if error_count > 0:
+            response["status"] = "partially_warmed"
+            response["warnings"] = f"{error_count} components had errors"
+        
+        logger.info(f"🔥 Warmup completed in {warmup_time:.3f}s - Status: {response['status']}")
+        
+        return response
         
     except Exception as e:
         logger.error(f"Warmup failed: {e}")
@@ -209,7 +490,8 @@ async def warmup():
             content={
                 "status": "warmup_failed",
                 "error": str(e),
-                "timestamp": time.time()
+                "timestamp": time.time(),
+                "uptime": time.time() - keep_alive_stats["uptime_start"] if keep_alive_stats else 0
             },
             status_code=500
         )
@@ -239,6 +521,8 @@ async def process_request(
     files: list[UploadFile] = File(default=[])
 ):
     """Process user prompt and files using LLM function calling"""
+    await update_activity()
+    
     try:
         print(f"Received request - Prompt: {prompt}")
         print(f"Number of files: {len(files)}")
@@ -283,6 +567,7 @@ async def process_request(
 @app.get("/download/{file_path:path}")
 async def download_file(file_path: str):
     """Download processed file"""
+    await update_activity()
     # Handle both full paths and relative paths
     if file_path.startswith("app/file_handler/outputs") or file_path.startswith("app\\file_handler\\outputs"):
         # Full path already provided
