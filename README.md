@@ -1,6 +1,6 @@
-# 🤖 ARYA - Advanced AI-Powered File Processing Platform
+# 🤖 ARYA - Advanced AI-Powered Platform
 
-**ARYA** is a cutting-edge FastAPI application that combines the power of AI with intuitive file processing capabilities. Using natural language prompts, users can describe what they want to do with their files, and the AI automatically determines and executes the appropriate function.
+**ARYA** is a cutting-edge FastAPI application that combines the power of AI with intuitive file processing capabilities and in various tasks. Using natural language prompts, users can describe what they want to do with their files, and the AI automatically determines and executes the appropriate function.
 
 ## ✨ Key Features
 
@@ -29,11 +29,6 @@
 - **Text Operations** - Find and replace across multiple files
 - **Smart Analysis** - Detailed file content analysis and reporting
 
-### 🎨 **Modern User Experience**
-- **Drag & Drop Interface** - Intuitive file upload with visual feedback
-- **Dark/Light Mode** - Automatic theme switching based on system preferences
-- **Responsive Design** - Works perfectly on desktop, tablet, and mobile
-- **Real-time Status** - Live progress updates and error handling
 
 ## 🚀 Quick Start
 
@@ -331,11 +326,6 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
 4. **Push to the branch** (`git push origin feature/amazing-feature`)
 5. **Open a Pull Request**
 
-### Development Guidelines
-- Follow PEP 8 style guidelines
-- Add tests for new functionality
-- Update documentation for changes
-- Ensure cross-platform compatibility
 
 ## 📝 License
 
