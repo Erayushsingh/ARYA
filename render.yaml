@@ -3,7 +3,8 @@ services:
     name: proagent-app
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1 --timeout-keep-alive 30
+    healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: 3.13.5
@@ -11,3 +12,5 @@ services:
         value: 0.0.0.0
       - key: DEBUG
         value: false
+      - key: KEEP_ALIVE
+        value: true

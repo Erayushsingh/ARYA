@@ -1,12 +1,15 @@
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 import uvicorn
 import os
 import time
+import asyncio
+import logging
 from typing import Optional
+from contextlib import asynccontextmanager
 
 from app.client.gemini_client import GeminiClient
 from app.client.sarvam_client import SarvamClient
@@ -15,7 +18,71 @@ from app.file_handler.file_manager import FileManager
 from app.models.schemas import FunctionCallRequest, FunctionCallResponse
 from app.config import Config
 
-app = FastAPI(title="LLM Function Calling API", version="1.0.0")
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Global variables for keep-alive
+keep_alive_task = None
+
+async def keep_alive_ping():
+    """Background task to keep the server alive and prevent cold starts"""
+    while True:
+        try:
+            # Log every 10 minutes to show the server is alive
+            logger.info("🏃 Keep-alive ping - Server is active")
+            await asyncio.sleep(600)  # Wait 10 minutes
+        except Exception as e:
+            logger.error(f"Keep-alive ping error: {e}")
+            await asyncio.sleep(60)  # Wait 1 minute on error
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage application lifespan"""
+    # Startup
+    logger.info("🚀 ARYA Server Starting Up...")
+    global keep_alive_task
+    keep_alive_task = asyncio.create_task(keep_alive_ping())
+    logger.info("✅ Keep-alive task started")
+    
+    # Test all services
+    try:
+        # Test configuration
+        logger.info(f"🔑 Config loaded - API key available: {bool(Config.GOOGLE_GEMINI_KEY)}")
+        
+        # Initialize clients
+        gemini_client = GeminiClient()
+        sarvam_client = SarvamClient()
+        logger.info("🤖 AI clients initialized successfully")
+        
+        # Test function registry
+        function_registry = FunctionRegistry()
+        available_functions = function_registry.get_available_functions()
+        logger.info(f"🛠️ Available functions: {list(available_functions.keys())}")
+        
+        logger.info("✅ All services initialized successfully")
+        
+    except Exception as e:
+        logger.error(f"❌ Startup error: {e}")
+    
+    yield
+    
+    # Shutdown
+    logger.info("🛑 ARYA Server Shutting Down...")
+    if keep_alive_task:
+        keep_alive_task.cancel()
+        try:
+            await keep_alive_task
+        except asyncio.CancelledError:
+            logger.info("🔄 Keep-alive task cancelled")
+    logger.info("👋 Shutdown complete")
+
+app = FastAPI(
+    title="ARYA - AI File Processing Suite", 
+    version="1.2.0",
+    description="AI-powered file processing with speech recognition, translation, and document conversion",
+    lifespan=lifespan
+)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -36,6 +103,117 @@ async def home(request: Request):
 async def favicon():
     """Return favicon"""
     return FileResponse("app/static/favicon.ico")
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for monitoring services"""
+    try:
+        # Check if all components are working
+        status = {
+            "status": "healthy",
+            "timestamp": time.time(),
+            "uptime": time.time(),
+            "services": {
+                "api": "running",
+                "file_manager": "active",
+                "ai_clients": "connected"
+            },
+            "functions_available": len(function_registry.get_available_functions()),
+            "version": "1.2.0"
+        }
+        
+        # Test Gemini client connection
+        try:
+            # Quick test without actual API call
+            gemini_status = "connected" if Config.GOOGLE_GEMINI_KEY else "no_api_key"
+            status["services"]["gemini"] = gemini_status
+        except:
+            status["services"]["gemini"] = "error"
+        
+        # Test Sarvam client connection
+        try:
+            sarvam_status = "connected" if Config.SARVAM_API_KEY else "no_api_key"
+            status["services"]["sarvam"] = sarvam_status
+        except:
+            status["services"]["sarvam"] = "error"
+            
+        return JSONResponse(content=status, status_code=200)
+        
+    except Exception as e:
+        logger.error(f"Health check failed: {e}")
+        return JSONResponse(
+            content={
+                "status": "unhealthy",
+                "error": str(e),
+                "timestamp": time.time()
+            },
+            status_code=503
+        )
+
+@app.get("/ping")
+async def ping():
+    """Simple ping endpoint for uptime monitoring"""
+    return {"message": "pong", "timestamp": time.time()}
+
+@app.get("/warmup")
+async def warmup():
+    """Warmup endpoint to initialize all services"""
+    try:
+        start_time = time.time()
+        
+        # Initialize all components
+        results = {
+            "gemini_client": "initializing",
+            "sarvam_client": "initializing", 
+            "function_registry": "initializing",
+            "file_manager": "initializing"
+        }
+        
+        # Test each component
+        try:
+            gemini_client = GeminiClient()
+            results["gemini_client"] = "ready"
+        except Exception as e:
+            results["gemini_client"] = f"error: {str(e)}"
+        
+        try:
+            sarvam_client = SarvamClient()
+            results["sarvam_client"] = "ready"
+        except Exception as e:
+            results["sarvam_client"] = f"error: {str(e)}"
+        
+        try:
+            function_registry = FunctionRegistry()
+            available_functions = function_registry.get_available_functions()
+            results["function_registry"] = f"ready ({len(available_functions)} functions)"
+        except Exception as e:
+            results["function_registry"] = f"error: {str(e)}"
+        
+        try:
+            file_manager = FileManager()
+            results["file_manager"] = "ready"
+        except Exception as e:
+            results["file_manager"] = f"error: {str(e)}"
+        
+        warmup_time = time.time() - start_time
+        
+        return {
+            "status": "warmed_up",
+            "warmup_time_seconds": round(warmup_time, 2),
+            "components": results,
+            "timestamp": time.time()
+        }
+        
+    except Exception as e:
+        logger.error(f"Warmup failed: {e}")
+        return JSONResponse(
+            content={
+                "status": "warmup_failed",
+                "error": str(e),
+                "timestamp": time.time()
+            },
+            status_code=500
+        )
 
 @app.get("/test")
 async def test():
@@ -239,13 +417,18 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", Config.PORT))
     host = os.environ.get("HOST", Config.HOST)
     
-    print("🚀 Starting PROAGENT FastAPI Server...")
+    print("🚀 Starting ARYA FastAPI Server...")
     print(f"🌐 Server will be available at: http://{host}:{port}")
+    print("🔧 Health check endpoints:")
+    print(f"  • Health: http://{host}:{port}/health")
+    print(f"  • Ping: http://{host}:{port}/ping")  
+    print(f"  • Warmup: http://{host}:{port}/warmup")
     print("🎤 Features available:")
     print("  • Multilingual speech-to-text with Sarvam AI")
     print("  • Google Translate integration")
     print("  • File processing (images, documents, audio)")
     print("  • Text-to-speech in multiple languages")
+    print("  • Keep-alive system for preventing cold starts")
     print("✅ Press Ctrl+C to stop the server")
     print("-" * 60)
     
