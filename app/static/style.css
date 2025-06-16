@@ -370,7 +370,7 @@ body {
 .goog-te-menu-frame {
   border-radius: 0.375rem !important;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
 }
 
 /* Style for when page is being translated */
@@ -934,4 +934,124 @@ select:focus {
   .gap-modern {
     gap: 1rem;
   }
+}
+
+/* Fix for function card icons - ensure no background */
+.function-card-icon,
+.text-4xl {
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* Specific fix for emoji icons in function cards */
+.bg-white .text-4xl,
+.dark\\:bg-gray-800 .text-4xl {
+  background: transparent !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  margin: 0 0 1.5rem 0 !important;
+  display: inline-block !important;
+  line-height: 1 !important;
+  font-style: normal !important;
+  text-decoration: none !important;
+  box-decoration-break: clone !important;
+  -webkit-box-decoration-break: clone !important;
+}
+
+/* Ensure hover effects don't add backgrounds to icons */
+.group:hover .text-4xl {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Remove any webkit/browser specific emoji styling */
+.text-4xl {
+  -webkit-font-feature-settings: "liga" off, "kern" off;
+  font-feature-settings: "liga" off, "kern" off;
+  -webkit-text-stroke: none !important;
+  text-stroke: none !important;
+}
+
+/* EMOJI BACKGROUND FIX - Specific fix for File Extraction icon */
+.text-4xl {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  -webkit-filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Ensure emoji icons don't have white backgrounds on any browser */
+.bg-white .text-4xl,
+.dark\\:bg-gray-800 .text-4xl,
+div[class*="bg-white"] .text-4xl {
+  background: transparent !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Fix for hover state */
+.group:hover .text-4xl {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Browser-specific emoji fixes */
+.text-4xl {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-variant-emoji: text;
+}
+
+/* Hide any pseudo-elements that might add backgrounds */
+.text-4xl::before,
+.text-4xl::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Specific fix for emoji icons with potential background issues */
+.emoji-icon {
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  outline: none !important;
+  display: inline-block !important;
+  font-style: normal !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  font-variant-emoji: text !important;
+}
+
+.emoji-icon::before,
+.emoji-icon::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Ensure hover doesn't add any background */
+.group:hover .emoji-icon {
+  background: transparent !important;
+  background-color: transparent !important;
 }

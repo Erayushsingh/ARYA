@@ -1,10 +1,137 @@
 // JavaScript for the LLM Function Calling app
 
+// App initialization and error handling
+let appInitialized = false;
 
+async function initializeApp() {
+    // Initialize app with retry mechanism for cold starts
+    if (appInitialized) return;
+    
+    try {
+        console.log('🚀 Initializing ARYA app...');
+        
+        // Try to ping the server to wake it up if it's sleeping
+        const startTime = Date.now();
+        showLoadingMessage('Waking up server... This may take a moment on first visit.');
+        
+        // Attempt to warm up the server
+        const warmupResponse = await fetch('/warmup', {
+            method: 'GET',
+            signal: AbortSignal.timeout(30000) // 30 second timeout
+        });
+        
+        if (warmupResponse.ok) {
+            const warmupData = await warmupResponse.json();
+            console.log('✅ Server warmup complete:', warmupData);
+            hideLoadingMessage();
+        } else {
+            console.warn('⚠️ Warmup request failed, continuing anyway...');
+        }
+        
+        const initTime = Date.now() - startTime;
+        console.log(`✅ App initialized in ${initTime}ms`);
+        appInitialized = true;
+        
+    } catch (error) {
+        console.error('❌ App initialization failed:', error);
+        hideLoadingMessage();
+        showErrorMessage('Server is starting up. Please wait a moment and refresh the page.');
+    }
+}
 
+function showLoadingMessage(message) {
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'appLoadingMessage';
+    loadingDiv.innerHTML = `
+        <div style="
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(255,255,255,0.9); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        ">            <div style="text-align: center; padding: 2rem; background: white; border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                <div style="font-size: 2rem; margin-bottom: 1rem;">🚀</div>
+                <h3 style="margin: 0 0 1rem 0; color: #333;">ARYA</h3>
+                <p style="margin: 0; color: #666;">${message}</p>
+                <div style="margin-top: 1rem;">
+                    <div class="loading-spinner" style="
+                        border: 3px solid #f3f3f3;
+                        border-top: 3px solid #4285f4;
+                        border-radius: 50%;
+                        width: 30px;
+                        height: 30px;
+                        animation: spin 1s linear infinite;
+                        margin: 0 auto;
+                    "></div>
+                </div>
+            </div>
+        </div>
+        <style>
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+        </style>
+    `;
+    document.body.appendChild(loadingDiv);
+}
 
-document.addEventListener('DOMContentLoaded', function () {
+function hideLoadingMessage() {
+    const loadingDiv = document.getElementById('appLoadingMessage');
+    if (loadingDiv) {
+        loadingDiv.remove();
+    }
+}
 
+function showErrorMessage(message) {
+    const errorDiv = document.createElement('div');
+    errorDiv.innerHTML = `
+        <div style="
+            position: fixed; 
+            top: 20px; 
+            right: 20px; 
+            background: #ff4444; 
+            color: white; 
+            padding: 1rem; 
+            border-radius: 0.5rem; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10001;
+            max-width: 300px;
+        ">
+            <strong>⚠️ Notice:</strong><br>
+            ${message}
+            <button onclick="this.parentElement.remove()" style="
+                background: none; 
+                border: none; 
+                color: white; 
+                float: right; 
+                cursor: pointer; 
+                font-size: 1.2rem;
+                margin-left: 10px;
+            ">×</button>
+        </div>
+    `;
+    document.body.appendChild(errorDiv);
+    
+    // Auto-remove after 10 seconds
+    setTimeout(() => {
+        if (errorDiv.parentElement) {
+            errorDiv.remove();
+        }
+    }, 10000);
+}
+
+// Initialize app when page loads
+document.addEventListener('DOMContentLoaded', async function () {
+    // Initialize the app first
+    await initializeApp();
+    
     const form = document.getElementById('processForm');
     const fileInput = document.getElementById('files');
     const fileList = document.getElementById('fileList');
@@ -838,7 +965,7 @@ function changeLanguage(langCode) {
 function addTranslationTooltip() {
     const translateElement = document.getElementById('google_translate_element');
     if (translateElement) {
-        translateElement.title = 'Select your language / अपनी भाषा चुनें / તમારી ભાષा પસંદ કરો';
+        translateElement.title = 'Select your language / अपनी भाषा चुनें / તમારી ભાષા પસંદ કરો';
     }
 
     // Add tooltip to custom dropdown
