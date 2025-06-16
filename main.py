@@ -54,11 +54,10 @@ async def lifespan(app: FastAPI):
         gemini_client = GeminiClient()
         sarvam_client = SarvamClient()
         logger.info("🤖 AI clients initialized successfully")
-        
-        # Test function registry
+          # Test function registry
         function_registry = FunctionRegistry()
         available_functions = function_registry.get_available_functions()
-        logger.info(f"🛠️ Available functions: {list(available_functions.keys())}")
+        logger.info(f"🛠️ Available functions: {available_functions}")
         
         logger.info("✅ All services initialized successfully")
         
