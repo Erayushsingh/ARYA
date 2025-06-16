@@ -11,4 +11,3 @@ python-magic>=0.4.27
 pandas>=2.1.0
 python-dotenv>=1.0.0
 sarvamai>=0.1.5
-httpx>=0.25.0
