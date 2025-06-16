@@ -56,12 +56,12 @@ class ImageToPdfConverter:
                 topMargin=margin,
                 bottomMargin=margin
             )
-            
-            # Calculate available space
+              # Calculate available space
             page_width = page_size_tuple[0] - 2 * margin
             page_height = page_size_tuple[1] - 2 * margin
             
             story = []
+            temp_files = []  # Keep track of temp files to clean up later
             
             for i, image_path in enumerate(image_files):
                 try:
@@ -81,18 +81,16 @@ class ImageToPdfConverter:
                         # Convert image to RGB if necessary
                         if img.mode in ('RGBA', 'P'):
                             # Create a temporary RGB image
-                            temp_path = f"temp_{uuid.uuid4().hex[:8]}.jpg"
-                            temp_full_path = os.path.join(Config.OUTPUT_DIR, temp_path)
+                            temp_filename = f"temp_{uuid.uuid4().hex[:8]}.jpg"
+                            temp_full_path = os.path.join(Config.OUTPUT_DIR, temp_filename)
                             
                             rgb_img = img.convert('RGB')
                             rgb_img.save(temp_full_path, 'JPEG', quality=95)
                             
-                            # Add to PDF
+                            # Add to PDF and track temp file
                             rl_image = RLImage(temp_full_path, width=final_width, height=final_height)
                             story.append(rl_image)
-                            
-                            # Clean up temp file
-                            os.remove(temp_full_path)
+                            temp_files.append(temp_full_path)
                         else:
                             # Add image directly to PDF
                             rl_image = RLImage(image_path, width=final_width, height=final_height)
@@ -109,8 +107,16 @@ class ImageToPdfConverter:
             if not story:
                 raise ValueError("No images could be processed")
             
-            # Build PDF
+            # Build PDF first
             pdf_doc.build(story)
+            
+            # Clean up temp files after PDF is built
+            for temp_file in temp_files:
+                try:
+                    if os.path.exists(temp_file):
+                        os.remove(temp_file)
+                except Exception as cleanup_error:
+                    print(f"Warning: Could not cleanup temp file {temp_file}: {cleanup_error}")
             
             return {
                 "output_path": os.path.basename(output_path),

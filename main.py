@@ -106,26 +106,12 @@ async def process_request(
 @app.get("/download/{file_path:path}")
 async def download_file(file_path: str):
     """Download processed file"""
-    # Handle both full paths and relative paths
-    if file_path.startswith("app/file_handler/outputs") or file_path.startswith("app\\file_handler\\outputs"):
-        # Full path already provided
-        full_path = file_path.replace("\\", "/")  # Normalize path separators
-    else:
-        # Relative path, add the base directory
-        full_path = os.path.join("app/file_handler/outputs", file_path)
-    
-    # Normalize the path and check if file exists
-    full_path = os.path.normpath(full_path)
+    # Use absolute path from Config
+    full_path = os.path.join(Config.OUTPUT_DIR, os.path.basename(file_path))
     
     if not os.path.exists(full_path):
-        # Try alternative path formats
-        alt_path = os.path.join("app", "file_handler", "outputs", os.path.basename(file_path))
-        if os.path.exists(alt_path):
-            full_path = alt_path
-        else:
-            print(f"File not found at: {full_path}")
-            print(f"Also tried: {alt_path}")
-            raise HTTPException(status_code=404, detail=f"File not found: {os.path.basename(file_path)}")
+        print(f"File not found at: {full_path}")
+        raise HTTPException(status_code=404, detail=f"File not found: {os.path.basename(file_path)}")
     
     filename = os.path.basename(full_path)
     return FileResponse(
@@ -186,9 +172,11 @@ async def sarvam_speech_to_text(
     """Sarvam AI speech-to-text with automatic language detection"""
     try:
         print(f"Received audio file: {audio.filename}, language: {language}, model: {model}")
-        
-        # Save uploaded audio file
+          # Save uploaded audio file
         temp_audio_path = os.path.join(Config.UPLOAD_DIR, f"temp_audio_{audio.filename}")
+        
+        # Ensure upload directory exists
+        os.makedirs(Config.UPLOAD_DIR, exist_ok=True)
         
         with open(temp_audio_path, "wb") as buffer:
             content = await audio.read()
@@ -233,6 +221,21 @@ async def sarvam_speech_to_text(
             "error": str(e),
             "message": "Failed to transcribe speech"
         }
+
+@app.get("/warmup")
+async def warmup():
+    """Warmup endpoint for hosting platforms"""
+    return {"status": "ok", "message": "Server is warm and ready"}
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "service": "PROAGENT",
+        "version": "1.0.0",
+        "timestamp": time.time()
+    }
 
 if __name__ == "__main__":
     import os
