@@ -361,203 +361,224 @@ body {
 
   .language-selector {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 1rem;
+  }
+
+  /* Quick language buttons container */
+  .language-selector .lang-btn {
+    min-width: 120px;
+    text-align: center;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  /* Navbar container mobile fixes */
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
+  /* Language selector header mobile alignment */
+  .language-selector > div:first-child {
+    text-align: center;
+    width: 100%;
+    justify-content: center;
   }
 }
 
-/* Improve Google Translate dropdown appearance */
-.goog-te-menu-frame {
-  border-radius: 0.375rem !important;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-}
-
-/* Style for when page is being translated */
-html[translate="yes"] {
-  transition: all 0.3s ease-in-out;
-}
-
-/* Loading state for translation */
-.translating {
-  opacity: 0.8;
-  transition: opacity 0.3s ease-in-out;
-}
-
-/* Quick Language Selector Styles */
-.lang-btn {
-  transition: all 0.2s ease-in-out;
-  font-weight: 500;
-}
-
-.lang-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.lang-btn:active {
-  transform: translateY(0);
-}
-
-.lang-btn.active {
-  background-color: #3b82f6;
-  color: white;
-  border-color: #3b82f6;
-}
-
-/* Translation status notification */
-#translation-status {
-  z-index: 9999;
-}
-
-/* Responsive adjustments for language selector */
-@media (max-width: 640px) {
+/* Mobile-specific navbar and language selector improvements */
+@media (max-width: 480px) {
+  /* Extra small mobile devices */
+  .container {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
   .language-selector {
-    flex-direction: column;
-    gap: 1rem;
+    padding: 0 0.5rem;
+    gap: 0.5rem !important;
   }
 
   .lang-btn {
-    font-size: 0.75rem;
-    padding: 0.375rem 0.75rem;
+    flex: 1 1 calc(50% - 0.25rem);
+    max-width: 140px;
+    min-width: 100px;
+    margin: 0.125rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    text-align: center;
   }
-}
 
-/* Animation for language switching */
-.page-translating {
-  animation: fadeTransition 0.3s ease-in-out;
-}
-
-@keyframes fadeTransition {
-  0% {
-    opacity: 1;
+  /* Navbar header mobile adjustments */
+  .bg-white\/70 {
+    margin-left: 0.25rem;
+    margin-right: 0.25rem;
+    padding: 0.75rem !important;
   }
-  50% {
-    opacity: 0.7;
-  }
-  100% {
-    opacity: 1;
-  }
-}
 
-/* Custom Google Translate dropdown styling */
-.goog-te-combo option {
-  padding: 0.5rem;
-  background-color: white;
-}
-
-/* Improve accessibility for language selector */
-.lang-btn:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
-
-/* Welcome message for different languages */
-.welcome-message {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
-  text-align: center;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.welcome-message.hidden {
-  display: none;
-}
-
-/* Language Dropdown Styles */
-.language-dropdown {
-  min-width: 200px;
-  max-width: 250px;
-  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 8px 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease-in-out;
-  cursor: pointer;
-}
-
-.language-dropdown:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-  transform: translateY(-1px);
-}
-
-.language-dropdown:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Optgroup styling */
-.language-dropdown optgroup {
-  font-weight: 600;
-  color: #374151;
-  font-size: 13px;
-  background-color: #f9fafb;
-  padding: 4px 0;
-}
-
-.language-dropdown option {
-  padding: 6px 8px;
-  font-size: 14px;
-  color: #374151;
-  background-color: #ffffff;
-  border: none;
-}
-
-.language-dropdown option:hover {
-  background-color: #f3f4f6;
-}
-
-.language-dropdown option:checked {
-  background-color: #3b82f6;
-  color: white;
-}
-
-/* Mobile responsive */
-@media (max-width: 640px) {
   .language-dropdown {
-    min-width: 160px;
     max-width: 180px;
-    font-size: 13px;
-    padding: 6px 10px;
+  }
+  /* Text alignment improvements */
+  .text-right {
+    text-align: center !important;
   }
 
-  .language-dropdown option {
-    padding: 4px 6px;
-    font-size: 13px;
+  .flex.justify-between {
+    justify-content: center !important;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  /* Fix shortcuts text spacing */
+  .text-xs {
+    line-height: 1.4 !important;
+    margin: 0.25rem 0 !important;
   }
 }
 
-/* Language indicator */
-.language-indicator {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #10b981;
-  margin-left: 8px;
-  animation: pulse 2s infinite;
+/* Improved mobile landscape orientation */
+@media (max-width: 768px) and (orientation: landscape) {
+  .language-selector {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .lang-btn {
+    flex: 0 1 auto;
+    min-width: 100px;
+  }
 }
 
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
+/* Focus and accessibility improvements for mobile */
+@media (max-width: 640px) {
+  .lang-btn:focus,
+  .language-dropdown:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
   }
-  50% {
-    opacity: 0.5;
+
+  /* Better touch targets */
+  .lang-btn {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+  }
+
+  .language-dropdown {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
   }
 }
-/* 
+
+/* Mobile layout improvements for language containers */
+@media (max-width: 640px) {
+  /* Language selector wrapper improvements */
+  .language-selector {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    gap: 0.375rem !important;
+    padding: 0.75rem 0.5rem !important;
+  }
+
+  /* Language selector title/header */
+  .language-selector > div:first-child {
+    flex-basis: 100%;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  /* Language buttons - 2 per row on mobile */
+  .language-selector .lang-btn {
+    flex: 1 1 calc(50% - 0.375rem);
+    min-width: 90px;
+    max-width: 130px;
+    padding: 0.625rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    margin: 0.125rem;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Header language section mobile improvements */
+  .bg-white\/70 .flex.justify-between {
+    gap: 1.25rem !important;
+  }
+
+  /* Google translate attribution section */
+  .text-right {
+    padding: 0.5rem !important;
+    border-top: 1px solid rgba(229, 231, 235, 0.3);
+    margin-top: 0.75rem !important;
+  }
+
+  .text-right .text-xs:first-child {
+    font-weight: 500;
+    color: #6b7280;
+  }
+
+  .text-right .text-xs:last-child {
+    margin-top: 0.375rem;
+    font-size: 0.7rem;
+    opacity: 0.8;
+  }
+}
+
+/* Extra small mobile devices (iPhone SE, etc.) - Prevent congestion */
+@media (max-width: 375px) {
+  .language-selector {
+    padding: 0.5rem 0.25rem !important;
+    gap: 0.25rem !important;
+  }
+
+  .language-selector .lang-btn {
+    font-size: 0.7rem;
+    padding: 0.5rem 0.375rem;
+    min-width: 85px;
+    max-width: 120px;
+  }
+
+  /* Header container extra small */
+  .bg-white\/70 {
+    margin-left: 0.125rem;
+    margin-right: 0.125rem;
+    padding: 0.625rem !important;
+  }
+
+  /* Language dropdown extra small */
+  .language-dropdown {
+    max-width: 160px;
+    font-size: 0.75rem;
+  }
+
+  /* Attribution text extra small */
+  .text-right .text-xs {
+    font-size: 0.65rem !important;
+  }
+}
+
+/* Landscape mode optimizations for mobile */
+@media (max-width: 640px) and (orientation: landscape) {
+  .language-selector {
+    gap: 0.25rem !important;
+  }
+
+  .language-selector .lang-btn {
+    flex: 1 1 calc(33.333% - 0.25rem);
+    min-width: 80px;
+    max-width: 110px;
+    font-size: 0.7rem;
+    padding: 0.4rem 0.3rem;
+  }
+}
+
 /* Modern UI Enhancements */
 
 /* Smooth scrolling */
@@ -853,85 +874,95 @@ select:focus {
   .mobile-text-xl {
     font-size: 1.3rem;
   }
-}
 
-/* Enhanced microphone button with gradient */
-#microphoneBtn {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}
-
-#microphoneBtn::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.3),
-    transparent
-  );
-  transition: left 0.6s ease;
-}
-
-#microphoneBtn:hover::before {
-  left: 100%;
-}
-
-#microphoneBtn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
-}
-
-#microphoneBtn.recording {
-  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-  animation: pulse-recording 2s infinite;
-  box-shadow: 0 4px 15px rgba(238, 90, 36, 0.6);
-}
-
-@keyframes pulse-recording {
-  0%,
-  100% {
-    transform: scale(1);
-    box-shadow: 0 4px 15px rgba(238, 90, 36, 0.6);
+  /* Navbar container mobile improvements */
+  .container {
+    max-width: 100% !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
   }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 6px 25px rgba(238, 90, 36, 0.8);
+
+  /* Language selector header mobile fixes */
+  .bg-white\/70 {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    padding: 1rem !important;
   }
-}
 
-/* Ensure proper spacing for all major components */
-.section-spacing {
-  margin-bottom: 4rem;
-}
-
-@media (max-width: 768px) {
-  .section-spacing {
-    margin-bottom: 2.5rem;
+  /* Language dropdown mobile alignment */
+  .language-dropdown {
+    width: 100%;
+    max-width: 200px;
   }
-}
-
-/* Additional spacing utilities */
-.gap-modern {
-  gap: 1.5rem;
-}
-
-@media (max-width: 640px) {
-  .gap-modern {
+  /* Flex container mobile alignment */
+  .flex.justify-between.items-center {
+    flex-direction: column;
     gap: 1rem;
+    align-items: center;
+  }
+
+  .flex.justify-between.items-center > div {
+    text-align: center;
+    width: 100%;
+  }
+
+  /* Fix "Powered by Google Translate" section mobile alignment */
+  .text-right {
+    text-align: center !important;
+    margin-top: 1rem;
+  }
+
+  .text-right .text-xs {
+    text-align: center !important;
+    margin: 0.25rem 0;
+  }
+}
+
+/* Header and title mobile alignment fixes */
+@media (max-width: 640px) {
+  /* Center align header content */
+  .text-center.mb-16 {
+    padding: 0 0.5rem;
+  }
+
+  /* Banner paragraph mobile alignment */
+  .bg-gradient-to-r.from-blue-50 {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
+    padding: 1.5rem !important;
+  }
+
+  /* Feature badges mobile layout */
+  .flex.flex-wrap.justify-center.items-center.gap-6 {
+    gap: 0.75rem !important;
+    padding: 0 0.5rem;
+  }
+
+  .flex.flex-wrap.justify-center.items-center.gap-6 > div {
+    flex: 1 1 calc(100% - 1rem);
+    max-width: 280px;
+    margin: 0 auto;
+  }
+
+  /* Language selector title mobile centering */
+  .language-selector > .flex.items-center.space-x-3 {
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Navigation and language selector container improvements */
+@media (max-width: 768px) {
+  /* Ensure proper container width on tablets */
+  .max-w-7xl {
+    max-width: 100% !important;
+  }
+
+  /* Language selector dropdown mobile positioning */
+  .relative select {
+    width: 100%;
+    text-align: center;
+    text-align-last: center;
   }
 }
